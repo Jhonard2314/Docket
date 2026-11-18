@@ -46,3 +46,9 @@ next-env.d.ts
 .eslintcache
 .turbo
 .swc
+
+# txt
+Document Management System.txt
+
+# temporary documentation
+PROJECT_DOCUMENTATION.docx    
