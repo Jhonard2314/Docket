@@ -1,38 +1,81 @@
 -- ============================================================
 -- Docket Document Management System
--- Script 02: Table definitions
+-- Script 02: Table definitions (PostgreSQL / Amazon RDS)
+-- Note: Prisma manages migrations in development.
+--       These scripts document the schema for the assignment.
 -- ============================================================
 
-USE docket_db;
+\c docket_db;
 
--- Users table
+CREATE TYPE "Role" AS ENUM ('USER', 'DEPARTMENT_HEAD', 'ADMIN');
+
+-- Better Auth: users
 CREATE TABLE IF NOT EXISTS users (
-  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-  name          VARCHAR(100)    NOT NULL,
-  email         VARCHAR(150)    NOT NULL UNIQUE,
-  password_hash VARCHAR(255)    NOT NULL,
-  role          ENUM('admin','user') NOT NULL DEFAULT 'user',
-  created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  id              TEXT        PRIMARY KEY,
+  name            TEXT        NOT NULL,
+  email           TEXT        NOT NULL UNIQUE,
+  "emailVerified" BOOLEAN     NOT NULL DEFAULT FALSE,
+  image           TEXT,
+  role            "Role"      NOT NULL DEFAULT 'USER',
+  "createdAt"     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
--- Categories table
+-- Better Auth: sessions
+CREATE TABLE IF NOT EXISTS sessions (
+  id          TEXT        PRIMARY KEY,
+  "expiresAt" TIMESTAMPTZ NOT NULL,
+  token       TEXT        NOT NULL UNIQUE,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "ipAddress" TEXT,
+  "userAgent" TEXT,
+  "userId"    TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Better Auth: accounts (OAuth / credentials)
+CREATE TABLE IF NOT EXISTS accounts (
+  id                       TEXT        PRIMARY KEY,
+  "accountId"              TEXT        NOT NULL,
+  "providerId"             TEXT        NOT NULL,
+  "accessToken"            TEXT,
+  "refreshToken"           TEXT,
+  "idToken"                TEXT,
+  "accessTokenExpiresAt"   TIMESTAMPTZ,
+  "refreshTokenExpiresAt"  TIMESTAMPTZ,
+  scope                    TEXT,
+  password                 TEXT,
+  "createdAt"              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "userId"                 TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Better Auth: verifications
+CREATE TABLE IF NOT EXISTS verifications (
+  id           TEXT        PRIMARY KEY,
+  identifier   TEXT        NOT NULL,
+  value        TEXT        NOT NULL,
+  "expiresAt"  TIMESTAMPTZ NOT NULL,
+  "createdAt"  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- App: categories
 CREATE TABLE IF NOT EXISTS categories (
-  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-  category_name VARCHAR(100)    NOT NULL UNIQUE,
-  created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  id          TEXT        PRIMARY KEY,
+  name        TEXT        NOT NULL UNIQUE,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
--- Documents table
+-- App: documents
 CREATE TABLE IF NOT EXISTS documents (
-  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-  filename      VARCHAR(255)    NOT NULL,
-  s3_key        VARCHAR(500)    NOT NULL,
-  category_id   INT UNSIGNED    NOT NULL,
-  uploaded_by   INT UNSIGNED    NOT NULL,
-  upload_date   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_doc_category  FOREIGN KEY (category_id) REFERENCES categories(id),
-  CONSTRAINT fk_doc_uploader  FOREIGN KEY (uploaded_by) REFERENCES users(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  id             TEXT        PRIMARY KEY,
+  filename       TEXT        NOT NULL,
+  "s3Key"        TEXT        NOT NULL,
+  "mimeType"     TEXT        NOT NULL,
+  "sizeBytes"    INTEGER     NOT NULL,
+  "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt"    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "categoryId"   TEXT        NOT NULL REFERENCES categories(id),
+  "uploadedById" TEXT        NOT NULL REFERENCES users(id)
+);

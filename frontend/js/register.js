@@ -1,8 +1,5 @@
-import { auth } from './api.js';
+import { auth } from './mockApi.js';
 import { showToast } from './toast.js';
-import { redirectIfLoggedIn } from './auth.js';
-
-redirectIfLoggedIn();
 
 const form = document.getElementById('register-form');
 const btn  = document.getElementById('register-btn');
@@ -27,7 +24,7 @@ form.addEventListener('submit', async (e) => {
   const res = await auth.register({ name, email, password });
   if (res.success) {
     showToast('Account created! Redirecting to login…', 'success');
-    setTimeout(() => { window.location.href = '/pages/login.html'; }, 1500);
+    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
   } else {
     showToast(res.message, 'error');
     btn.disabled = false;

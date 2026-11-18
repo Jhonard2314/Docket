@@ -1,10 +1,13 @@
 -- ============================================================
 -- Docket Document Management System
--- Script 01: Create database
+-- Script 01: Create database (run as superuser)
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS docket_db
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+-- Create the database (run once as a superuser e.g. postgres)
+CREATE DATABASE docket_db
+  ENCODING 'UTF8'
+  LC_COLLATE 'en_US.UTF-8'
+  LC_CTYPE   'en_US.UTF-8';
 
-USE docket_db;
+-- Connect to it before running subsequent scripts
+\c docket_db;

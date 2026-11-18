@@ -1,8 +1,5 @@
-import { auth } from './api.js';
+import { auth } from './mockApi.js';
 import { showToast } from './toast.js';
-import { redirectIfLoggedIn } from './auth.js';
-
-redirectIfLoggedIn();
 
 const form = document.getElementById('login-form');
 const btn  = document.getElementById('login-btn');
@@ -17,7 +14,9 @@ form.addEventListener('submit', async (e) => {
 
   const res = await auth.login({ email, password });
   if (res.success) {
-    window.location.href = '/pages/dashboard.html';
+    // Store session in localStorage so other pages can read it
+    localStorage.setItem('docket_user', JSON.stringify(res.user));
+    window.location.href = 'dashboard.html';
   } else {
     showToast(res.message, 'error');
     btn.disabled = false;

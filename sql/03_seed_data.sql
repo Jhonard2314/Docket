@@ -1,20 +1,18 @@
 -- ============================================================
 -- Docket Document Management System
--- Script 03: Seed data (default admin + sample categories)
--- Password for admin@docket.com is: Admin@1234
--- (bcrypt hash generated with 12 salt rounds)
+-- Script 03: Seed data
+-- Categories are inserted; the admin user is created via
+-- the application's /api/auth/sign-up/email endpoint or
+-- by running: npm run db:seed in the backend folder.
 -- ============================================================
 
-USE docket_db;
+\c docket_db;
 
-INSERT IGNORE INTO users (name, email, password_hash, role) VALUES
-  ('System Admin', 'admin@docket.com',
-   '$2a$12$e0NdoLAeMGMxjMHnI4j1nOl8TSXPfGzOVz/DRbhCdRPW1p5YxEEWq', 'admin');
-
-INSERT IGNORE INTO categories (category_name) VALUES
-  ('Human Resources'),
-  ('Finance'),
-  ('Legal'),
-  ('Operations'),
-  ('IT & Technology'),
-  ('Marketing');
+INSERT INTO categories (id, name) VALUES
+  (gen_random_uuid()::text, 'Human Resources'),
+  (gen_random_uuid()::text, 'Finance'),
+  (gen_random_uuid()::text, 'Legal'),
+  (gen_random_uuid()::text, 'Operations'),
+  (gen_random_uuid()::text, 'IT & Technology'),
+  (gen_random_uuid()::text, 'Marketing')
+ON CONFLICT (name) DO NOTHING;

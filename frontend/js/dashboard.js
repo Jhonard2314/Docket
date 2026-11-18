@@ -1,25 +1,23 @@
-import { documents, categories } from './api.js';
+import { documents, categories } from './mockApi.js';
 import { requireAuth, renderUserInfo } from './auth.js';
 
-(async () => {
-  const user = await requireAuth();
-  if (!user) return;
+const user = requireAuth();
+if (user) {
   renderUserInfo(user);
+  loadStats();
+}
 
-  // Fetch counts
-  const [docsRes, catsRes] = await Promise.all([documents.list(), categories.list()]);
+async function loadStats() {
+  const [docsRes, catsRes] = await Promise.all([
+    documents.list(),
+    categories.list(),
+  ]);
 
-  const docCount = docsRes.success ? docsRes.documents.length : 0;
-  const catCount = catsRes.success ? catsRes.categories.length : 0;
+  document.getElementById('stat-docs').textContent = docsRes.success ? docsRes.documents.length : '—';
+  document.getElementById('stat-cats').textContent = catsRes.success ? catsRes.categories.length : '—';
 
-  document.getElementById('stat-docs').textContent  = docCount;
-  document.getElementById('stat-cats').textContent  = catCount;
-
-  // Show last 5 uploads in the recent table
-  if (docsRes.success) {
-    renderRecentDocs(docsRes.documents.slice(0, 5));
-  }
-})();
+  if (docsRes.success) renderRecentDocs(docsRes.documents.slice(0, 5));
+}
 
 function renderRecentDocs(docs) {
   const tbody = document.getElementById('recent-docs-body');
@@ -29,14 +27,14 @@ function renderRecentDocs(docs) {
   }
   tbody.innerHTML = docs.map((d) => `
     <tr>
-      <td>${escHtml(d.filename)}</td>
-      <td>${escHtml(d.category_name)}</td>
-      <td>${escHtml(d.uploaded_by_name)}</td>
+      <td>${esc(d.filename)}</td>
+      <td>${esc(d.category_name)}</td>
+      <td>${esc(d.uploaded_by_name)}</td>
       <td>${new Date(d.upload_date).toLocaleDateString()}</td>
     </tr>
   `).join('');
 }
 
-function escHtml(str) {
-  return String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }

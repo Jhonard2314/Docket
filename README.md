@@ -6,12 +6,13 @@ A cloud-based document management system built on AWS for CCS4301 – Cloud Comp
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | HTML5, CSS3, Bootstrap 5, Vanilla JS (ES Modules) |
-| Backend | Node.js + Express.js |
-| Database | MySQL 8 on Amazon RDS |
+| Frontend | HTML5, CSS3 (custom), Vanilla JS (ES Modules) |
+| Backend | Node.js + Express.js + **TypeScript** |
+| ORM | **Prisma ORM 7** |
+| Database | **PostgreSQL 16** on Amazon RDS |
 | File Storage | Amazon S3 (private bucket + pre-signed URLs) |
-| Hosting | Amazon EC2 (Ubuntu 22.04) |
-| Auth | Express-Session + bcryptjs |
+| Authentication | **Better Auth** (email/password + sessions) |
+| Hosting | Amazon EC2 (Ubuntu 22.04) + Nginx reverse proxy |
 | Cloud Security | AWS IAM Roles + Security Groups |
 
 ## Project Structure
@@ -19,131 +20,115 @@ A cloud-based document management system built on AWS for CCS4301 – Cloud Comp
 ```
 Docket/
 ├── frontend/
-│   ├── css/
-│   │   └── style.css              # Global styles
+│   ├── css/style.css
 │   ├── js/
-│   │   ├── api.js                 # Fetch wrapper for all API calls
-│   │   ├── auth.js                # Session guard helpers
-│   │   ├── sidebar.js             # Shared sidebar injector
-│   │   ├── toast.js               # Toast notification helper
-│   │   ├── login.js               # Login page logic
-│   │   ├── register.js            # Register page logic
-│   │   ├── dashboard.js           # Dashboard page logic
-│   │   ├── documents.js           # Documents page logic
-│   │   ├── categories.js          # Categories page logic
-│   │   ├── users.js               # User management page logic
-│   │   └── logout.js              # Logout button handler
+│   │   ├── api.js          # Fetch wrapper (Better Auth + app routes)
+│   │   ├── auth.js         # Session guard (localStorage for mock mode)
+│   │   ├── sidebar.js      # Sidebar injector
+│   │   ├── toast.js        # Toast notifications
+│   │   ├── mockApi.js      # Mock backend for local preview
+│   │   ├── login.js / register.js / logout.js
+│   │   ├── dashboard.js / documents.js / categories.js / users.js
 │   ├── pages/
-│   │   ├── login.html
-│   │   ├── register.html
-│   │   ├── dashboard.html
-│   │   ├── documents.html
-│   │   ├── categories.html
-│   │   └── users.html
-│   └── index.html                 # Redirects to login
+│   │   ├── login.html / register.html / dashboard.html
+│   │   ├── documents.html / categories.html / users.html
+│   └── index.html
 │
 ├── backend/
+│   ├── prisma/
+│   │   ├── schema.prisma   # PostgreSQL schema (Prisma)
+│   │   └── seed.ts         # Category seed data
 │   └── src/
 │       ├── config/
-│       │   ├── db.js              # MySQL connection pool
-│       │   ├── s3.js              # S3 client
-│       │   └── session.js         # Express-session config
-│       ├── controllers/
-│       │   ├── authController.js
-│       │   ├── categoryController.js
-│       │   ├── documentController.js
-│       │   └── userController.js
-│       ├── middleware/
-│       │   ├── requireAuth.js     # Session auth guard
-│       │   ├── requireAdmin.js    # Admin role guard
-│       │   └── uploadMiddleware.js # Multer → S3
-│       ├── routes/
-│       │   ├── authRoutes.js
-│       │   ├── categoryRoutes.js
-│       │   ├── documentRoutes.js
-│       │   └── userRoutes.js
-│       ├── services/
-│       │   ├── authService.js
-│       │   ├── categoryService.js
-│       │   ├── documentService.js
-│       │   └── userService.js
-│       ├── utils/
-│       │   ├── hashPassword.js
-│       │   ├── comparePassword.js
-│       │   ├── generateS3Key.js
-│       │   ├── presignedUrl.js
-│       │   └── deleteS3Object.js
-│       └── app.js                 # Express entry point
+│       │   ├── auth.ts     # Better Auth configuration
+│       │   ├── db.ts       # Prisma client singleton
+│       │   └── s3.ts       # AWS S3 client
+│       ├── controllers/    # HTTP handlers (TypeScript)
+│       ├── middleware/     # requireAuth, requireAdmin, upload
+│       ├── routes/         # Express routers (TypeScript)
+│       ├── services/       # Business logic (TypeScript + Prisma)
+│       ├── utils/          # S3 key generator, presigned URL, delete
+│       └── app.ts          # Express entry point
 │
 ├── sql/
 │   ├── 01_create_database.sql
 │   ├── 02_create_tables.sql
 │   ├── 03_seed_data.sql
 │   └── 04_sample_queries.sql
-│
 └── README.md
 ```
 
 ## Local Development
 
 ```bash
-# 1. Install backend dependencies
 cd backend
 npm install
 
-# 2. Copy and fill in environment variables
+# Copy and fill in environment variables
 cp .env.example .env
 
-# 3. Run the database scripts against your RDS instance (or local MySQL)
-mysql -h <host> -u <user> -p < ../sql/01_create_database.sql
-mysql -h <host> -u <user> -p < ../sql/02_create_tables.sql
-mysql -h <host> -u <user> -p < ../sql/03_seed_data.sql
+# Push schema to your PostgreSQL database
+npm run db:push
 
-# 4. Start the backend (serves frontend too via express.static)
+# Seed default categories
+npm run db:seed
+
+# Start dev server
 npm run dev
 # → http://localhost:3000
 ```
+
+For local preview without a database, open:
+```
+frontend/pages/login.html
+```
+via Python: `python -m http.server 5500` from the `frontend/` directory.
+Login with any email/password — mockApi.js handles it in-memory.
 
 ## API Endpoints
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | /api/auth/register | — | Register a new user |
-| POST | /api/auth/login | — | Login |
-| POST | /api/auth/logout | ✓ | Logout |
-| GET | /api/auth/me | — | Current session info |
-| GET | /api/categories | ✓ | List all categories |
+| POST | /api/auth/sign-up/email | — | Register |
+| POST | /api/auth/sign-in/email | — | Login |
+| POST | /api/auth/sign-out | ✓ | Logout |
+| GET | /api/auth/get-session | — | Current session |
+| GET | /api/categories | ✓ | List categories |
 | POST | /api/categories | admin | Create category |
 | DELETE | /api/categories/:id | admin | Delete category |
-| GET | /api/documents | ✓ | List documents (with search/filter) |
-| POST | /api/documents/upload | ✓ | Upload a document to S3 |
-| GET | /api/documents/:id/download | ✓ | Get pre-signed download URL |
-| PATCH | /api/documents/:id/rename | ✓ | Rename document |
-| DELETE | /api/documents/:id | ✓ | Delete document |
-| GET | /api/users | admin | List all users |
-| PATCH | /api/users/:id/role | admin | Change user role |
+| GET | /api/documents | ✓ | List (search/filter) |
+| POST | /api/documents/upload | ✓ | Upload to S3 |
+| GET | /api/documents/:id/download | ✓ | Pre-signed URL |
+| PATCH | /api/documents/:id/rename | ✓ | Rename |
+| DELETE | /api/documents/:id | ✓ | Delete |
+| GET | /api/users | admin | List users |
+| PATCH | /api/users/:id/role | admin | Change role |
 | DELETE | /api/users/:id | admin | Delete user |
 
-## Default Admin Account
+## Roles
 
-| Field | Value |
-|-------|-------|
-| Email | admin@docket.com |
-| Password | Admin@1234 |
-
-> Change the admin password immediately after first login.
+| Role | Permissions |
+|------|------------|
+| `USER` | Upload, view, rename, delete own documents |
+| `DEPARTMENT_HEAD` | Same as USER (extended permissions planned) |
+| `ADMIN` | All documents + category and user management |
 
 ## AWS Services Used
 
-- **Amazon EC2** — Hosts the Node.js application (Ubuntu 22.04, t2.micro)
-- **Amazon RDS** — MySQL 8.0 database instance
-- **Amazon S3** — Private bucket for document storage
-- **Amazon VPC** — Custom VPC with public and private subnets
-- **AWS IAM** — EC2 instance role with S3 and RDS access (no hard-coded keys)
-- **Security Groups** — HTTP/HTTPS from anywhere; MySQL only from EC2 security group
+- **Amazon EC2** — Ubuntu 22.04, runs Node.js + Express behind Nginx
+- **Amazon RDS** — PostgreSQL 16, private subnet
+- **Amazon S3** — Private bucket, files accessed via pre-signed URLs
+- **Amazon VPC** — Custom VPC, public + private subnets
+- **AWS IAM** — EC2 instance role (no hardcoded keys)
+- **Security Groups** — HTTP/HTTPS open; PostgreSQL only from EC2 SG
 
 ## Authors
 
-- Joshua B. Castillejos
-- CCS4301 – Cloud Computing, 1st Semester 2026-2027
-- University of the East — College of Engineering
+- Joshua Castillejos
+- Justin Cedric Espe
+- Shamier Repalda
+- Cj Rigor
+- Jhonard Rollo
+
+CCS4301 – Cloud Computing, 1st Semester 2026-2027
+University of the East — College of Engineering
