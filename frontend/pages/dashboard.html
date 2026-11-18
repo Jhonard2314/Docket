@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Docket</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body data-page="dashboard">
+  <div id="app" class="d-flex">
+    <!-- Sidebar injected by sidebar.js -->
+
+    <main class="main-content flex-grow-1">
+      <div class="topbar">
+        <h1>Dashboard</h1>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon text-primary"><i class="bi bi-file-earmark-text"></i></div>
+            <div>
+              <div class="stat-value" id="stat-docs">—</div>
+              <div class="text-muted small">Total Documents</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon text-success"><i class="bi bi-tags"></i></div>
+            <div>
+              <div class="stat-value" id="stat-cats">—</div>
+              <div class="text-muted small">Categories</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent uploads -->
+      <div class="doc-table-wrapper">
+        <div class="p-3 border-bottom fw-semibold">Recent Uploads</div>
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Filename</th><th>Category</th><th>Uploaded By</th><th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="recent-docs-body">
+            <tr><td colspan="4" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { injectSidebar } from '../js/sidebar.js';
+    import '../js/logout.js';
+    injectSidebar();
+  </script>
+  <script type="module" src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+/* ── Global ─────────────────────────────────────────────────────────────────── */
+:root {
+  --primary: #0d6efd;
+  --primary-dark: #084298;
+  --danger: #dc3545;
+  --success: #198754;
+  --bg: #f8f9fa;
+  --card-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--bg);
+  min-height: 100vh;
+}
+
+/* ── Auth pages ─────────────────────────────────────────────────────────────── */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 2.5rem 2rem;
+}
+
+.auth-card .brand {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.5px;
+}
+
+/* ── Sidebar layout ─────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: #1a1d23;
+  color: #c9cdd4;
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar .brand {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 0.75rem 1.25rem 1.25rem;
+  border-bottom: 1px solid #2e3340;
+}
+
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.25rem;
+  color: #c9cdd4;
+  text-decoration: none;
+  border-radius: 6px;
+  margin: 0.1rem 0.5rem;
+  transition: background .15s;
+}
+
+.sidebar nav a:hover,
+.sidebar nav a.active {
+  background: #2e3340;
+  color: #fff;
+}
+
+.main-content {
+  margin-left: 240px;
+  padding: 1.75rem 2rem;
+}
+
+/* ── Topbar ─────────────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.topbar h1 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────────── */
+.stat-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  padding: 1.25rem 1.5rem;
+}
+
+.stat-card .stat-icon {
+  font-size: 2rem;
+  opacity: .8;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* ── Document table ─────────────────────────────────────────────────────────── */
+.doc-table-wrapper {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.doc-table-wrapper table {
+  margin-bottom: 0;
+}
+
+/* ── Upload zone ────────────────────────────────────────────────────────────── */
+.upload-zone {
+  border: 2px dashed #ced4da;
+  border-radius: 10px;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: var(--primary);
+  background: #e8f0fe;
+}
+
+.upload-zone .upload-icon {
+  font-size: 2.5rem;
+  color: var(--primary);
+}
+
+/* ── Toast ──────────────────────────────────────────────────────────────────── */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast-msg {
+  background: #1a1d23;
+  color: #fff;
+  padding: 0.65rem 1.1rem;
+  border-radius: 8px;
+  font-size: .9rem;
+  animation: fadeIn .2s ease;
+}
+
+.toast-msg.error  { background: var(--danger); }
+.toast-msg.success { background: var(--success); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; padding: 1rem; }
+}
