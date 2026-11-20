@@ -1,14 +1,24 @@
 import { Router } from 'express';
-import { uploadDocument, listDocuments, renameDoc, deleteDoc, downloadDoc } from '../controllers/documentController';
+import {
+  createUploadIntent, completeUpload,
+  listDocuments, getDocument, updateDocument,
+  deleteDocument, downloadDocument,
+} from '../controllers/documentController';
 import { requireAuth } from '../middleware/requireAuth';
-import upload          from '../middleware/uploadMiddleware';
 
 const router = Router();
 
-router.get('/',                requireAuth, listDocuments);
-router.post('/upload',         requireAuth, upload.single('file'), uploadDocument);
-router.get('/:id/download',    requireAuth, downloadDoc);
-router.patch('/:id/rename',    requireAuth, renameDoc);
-router.delete('/:id',          requireAuth, deleteDoc);
+// Upload flow — presigned POST (no file streams through Express)
+router.post('/uploads',             requireAuth, createUploadIntent);
+router.post('/uploads/:id/complete', requireAuth, completeUpload);
+
+// Document CRUD
+router.get('/',        requireAuth, listDocuments);
+router.get('/:id',     requireAuth, getDocument);
+router.patch('/:id',   requireAuth, updateDocument);
+router.delete('/:id',  requireAuth, deleteDocument);
+
+// Download — returns a presigned GET URL
+router.get('/:id/download', requireAuth, downloadDocument);
 
 export default router;

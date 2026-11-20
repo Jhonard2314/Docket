@@ -1,42 +1,37 @@
-import multer      from 'multer';
-import multerS3    from 'multer-s3';
-import s3Client    from '../config/s3';
-import { generateS3Key } from '../utils/generateS3Key';
-import { Request }       from 'express';
-
-const ALLOWED_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-];
-
-const FILE_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
+import multer from 'multer';
 
 /**
- * Multer middleware: streams uploads directly to the private S3 bucket.
- * Files are never written to the EC2 instance disk.
+ * Memory-storage multer — used only for the completion endpoint to inspect
+ * the uploaded file content type and size after S3 receives it.
+ *
+ * The actual upload to S3 happens directly from the browser using a
+ * presigned POST URL returned by POST /api/documents/uploads.
+ * Files never stream through the Express process for the primary upload path.
  */
-const upload = multer({
-  storage: multerS3({
-    s3:          s3Client,
-    bucket:      process.env.S3_BUCKET_NAME as string,
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-    key: (_req: Request, file, cb) => {
-      const userId = (_req as any).locals?.user?.id ?? 'unknown';
-      cb(null, generateS3Key(userId, file.originalname));
-    },
-  }),
-  limits:     { fileSize: FILE_SIZE_LIMIT },
+
+export const ALLOWED_MIME_TYPES: Record<string, true> = {
+  'application/pdf':                                                        true,
+  'application/msword':                                                     true,
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': true,
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':      true,
+  'text/plain':                                                             true,
+  'image/jpeg':                                                             true,
+  'image/png':                                                              true,
+};
+
+export const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xlsx', '.txt', '.jpg', '.jpeg', '.png'];
+
+export const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MiB
+
+/** Multer instance for in-memory handling (completion / server-side inspection). */
+export const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: MAX_FILE_BYTES },
   fileFilter: (_req, file, cb) => {
-    if (ALLOWED_TYPES.includes(file.mimetype)) {
+    if (ALLOWED_MIME_TYPES[file.mimetype]) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Allowed: PDF, Word, JPG, PNG, GIF.'));
+      cb(new Error(`File type not allowed. Supported: PDF, DOCX, XLSX, TXT, PNG, JPEG.`));
     }
   },
 });
-
-export default upload;

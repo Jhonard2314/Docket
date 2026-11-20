@@ -1,53 +1,27 @@
 /**
- * auth.js — Session helpers using localStorage for mock mode.
- * When connected to the real backend, replace getUser() with an /api/auth/me call.
+ * auth.js — Session helpers.
+ * Reads from localStorage (mock mode) or /api/me (live mode).
+ * Roles are uppercase: 'ADMIN' | 'DEPARTMENT_HEAD' | 'EMPLOYEE'
  */
 
-function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem('docket_user'));
-  } catch {
-    return null;
-  }
+export function getUser() {
+  try { return JSON.parse(localStorage.getItem('docket_user')); }
+  catch { return null; }
 }
 
-/**
- * Blocks access if no session. Redirects to login.
- * Returns the user object if authenticated.
- */
-function requireAuth() {
+export function requireAuth() {
   const user = getUser();
-  if (!user) {
-    window.location.href = 'login.html';
-    return null;
-  }
+  if (!user) { window.location.href = 'login.html'; return null; }
   return user;
 }
 
-/**
- * Redirects to dashboard if already logged in.
- * Used on login/register pages.
- */
-function redirectIfLoggedIn() {
-  const user = getUser();
-  if (user) {
-    window.location.href = 'dashboard.html';
-  }
-}
+export function isAdmin()      { return getUser()?.role === 'ADMIN'; }
+export function isDeptHead()   { return getUser()?.role === 'DEPARTMENT_HEAD'; }
 
-/**
- * Populates sidebar name/role and shows admin-only elements.
- */
-function renderUserInfo(user) {
-  document.querySelectorAll('[data-user-name]').forEach((el) => {
-    el.textContent = user.name;
-  });
-  document.querySelectorAll('[data-user-role]').forEach((el) => {
-    el.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
-  });
-  if (user.role === 'admin') {
-    document.querySelectorAll('.admin-only').forEach((el) => el.classList.remove('d-none'));
-  }
+export function fileSize(bytes) {
+  if (!bytes) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0; let v = bytes;
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  return `${v % 1 === 0 ? v : v.toFixed(1)} ${units[i]}`;
 }
-
-export { requireAuth, redirectIfLoggedIn, renderUserInfo, getUser };

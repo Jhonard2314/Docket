@@ -1,6 +1,6 @@
-// Prisma schema for Docket Document Management System
-// Database: PostgreSQL on Amazon RDS
-// Auth: Better Auth (manages user, session, account, verification tables)
+// Prisma schema — Docket Document Management System
+// Database : PostgreSQL on Amazon RDS
+// Auth     : Better Auth (manages user / session / account / verification tables)
 
 generator client {
   provider = "prisma-client-js"
@@ -11,17 +11,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ── Enumerations ──────────────────────────────────────────────────────────────
+
+enum Role {
+  EMPLOYEE
+  DEPARTMENT_HEAD
+  ADMIN
+}
+
+enum DocumentStatus {
+  PENDING
+  READY
+  DELETING
+}
+
 // ── Better Auth tables ────────────────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  role          Role      @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  role          Role     @default(EMPLOYEE)
+  isActive      Boolean  @default(true)
+
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
 
   sessions      Session[]
   accounts      Account[]
@@ -78,36 +97,52 @@ model Verification {
 
 // ── Application tables ────────────────────────────────────────────────────────
 
-enum Role {
-  USER
-  DEPARTMENT_HEAD
-  ADMIN
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  users     User[]
+  documents Document[]
+
+  @@map("departments")
 }
 
 model Category {
-  id           String     @id @default(cuid())
-  name         String     @unique
-  createdAt    DateTime   @default(now())
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
 
-  documents    Document[]
+  documents Document[]
 
   @@map("categories")
 }
 
 model Document {
-  id          String   @id @default(cuid())
-  filename    String
-  s3Key       String
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  filename    String                      // original filename
+  s3Key       String         @unique      // final object key
+  stagingKey  String?                     // temporary key while PENDING
   mimeType    String
   sizeBytes   Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      DocumentStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [id])
 
-  uploadedById String
-  uploadedBy   User    @relation(fields: [uploadedById], references: [id])
+  departmentId  String
+  department    Department @relation(fields: [departmentId], references: [id])
 
+  uploadedById  String
+  uploadedBy    User       @relation(fields: [uploadedById], references: [id])
+
+  @@index([uploadedById])
+  @@index([departmentId])
+  @@index([categoryId])
+  @@index([status])
   @@map("documents")
 }

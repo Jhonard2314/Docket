@@ -2,34 +2,43 @@ import { Request, Response } from 'express';
 import { Role }              from '@prisma/client';
 import * as svc              from '../services/userService';
 
-export async function listUsers(_req: Request, res: Response) {
+function errStatus(code: string) {
+  return { NOT_FOUND: 404, CONFLICT: 409 }[code] ?? 500;
+}
+
+export async function listUsers(req: Request, res: Response) {
   try {
-    const users = await svc.getAllUsers();
-    res.json({ success: true, users });
+    const data = await svc.getAllUsers(req.query.q as string | undefined);
+    res.json({ data });
   } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: { code: 'ERROR', message: err.message } });
   }
 }
 
-export async function changeUserRole(req: Request, res: Response) {
+export async function getUser(req: Request, res: Response) {
   try {
-    const { role } = req.body;
-    const updated = await svc.updateUserRole(req.params.id, role as Role);
-    res.json({ success: true, user: updated });
+    const data = await svc.getUserById(req.params.id);
+    res.json({ data });
   } catch (err: any) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(errStatus(err.code)).json({ error: { code: err.code ?? 'ERROR', message: err.message } });
   }
 }
 
-export async function removeUser(req: Request, res: Response) {
+export async function updateUser(req: Request, res: Response) {
   try {
-    if (req.params.id === res.locals.user.id) {
-      res.status(400).json({ success: false, message: 'You cannot delete your own account.' });
-      return;
-    }
-    await svc.deleteUser(req.params.id);
-    res.json({ success: true, message: 'User deleted.' });
+    const { name, role, departmentId, isActive } = req.body;
+    const data = await svc.updateUser(req.params.id, { name, role: role as Role, departmentId, isActive });
+    res.json({ data });
   } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(errStatus(err.code)).json({ error: { code: err.code ?? 'ERROR', message: err.message } });
+  }
+}
+
+export async function deactivateUser(req: Request, res: Response) {
+  try {
+    const data = await svc.deactivateUser(req.params.id);
+    res.json({ data });
+  } catch (err: any) {
+    res.status(errStatus(err.code)).json({ error: { code: err.code ?? 'ERROR', message: err.message } });
   }
 }
