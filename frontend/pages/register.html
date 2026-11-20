@@ -3,49 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register — Docket</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <title>Docket · Create account</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
-  <div class="auth-wrapper">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <i class="bi bi-folder2-open"></i> Docket
-      </div>
-      <p class="auth-subtitle">Create your account</p>
+<div class="login-page">
+  <section class="login-story">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </span>
+      docket<span class="brand-period">.</span>
+    </div>
+    <div class="login-story-content">
+      <span class="eyebrow">A PLACE FOR EVERY DOCUMENT</span>
+      <h1>Your team's<br />documents,<br /><em>organized.</em></h1>
+      <p>Everything your team needs,<br />right where it belongs.</p>
+    </div>
+    <div class="login-story-footer">Built for teams. Made to keep things simple.</div>
+  </section>
 
-      <form id="register-form" novalidate>
-        <div class="mb-3">
-          <label for="name" class="form-label">Full Name</label>
-          <input type="text" id="name" class="form-control" placeholder="Juan dela Cruz" required />
-        </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">Email address</label>
-          <input type="email" id="email" class="form-control" placeholder="you@example.com" required />
-        </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" id="password" class="form-control" placeholder="Min. 8 characters" required />
-        </div>
-        <div class="mb-4">
-          <label for="confirm-password" class="form-label">Confirm Password</label>
-          <input type="password" id="confirm-password" class="form-control" placeholder="Re-enter password" required />
-        </div>
-        <button id="register-btn" type="submit" class="btn-auth">
-          <i class="bi bi-person-plus me-1"></i> Create Account
+  <section class="login-form-side">
+    <div class="login-form-wrap">
+      <span class="login-tag"><span></span>CREATE YOUR ACCOUNT</span>
+      <h2>Get started.</h2>
+      <p>Fill in your details to join your workspace.</p>
+
+      <form id="register-form">
+        <div id="register-error" class="error-message" style="display:none"></div>
+        <label>Full name<input type="text" id="name" required placeholder="Juan dela Cruz" /></label>
+        <label>Email address<input type="email" id="email" required placeholder="you@company.com" /></label>
+        <label>Password<input type="password" id="password" required placeholder="Min. 8 characters" /></label>
+        <label>Confirm password<input type="password" id="confirm-password" required placeholder="Re-enter password" /></label>
+        <button type="submit" class="button primary login-submit" id="register-btn">
+          Create account
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </form>
 
-      <p class="auth-footer">
-        Already have an account? <a href="login.html">Log in</a>
-      </p>
+      <p class="login-help">Already have an account? <a href="login.html">Sign in</a></p>
     </div>
-  </div>
-
-  <script type="module" src="../js/register.js"></script>
+    <div class="login-copyright">Docket · Your documents, together.</div>
+  </section>
+</div>
+<script type="module" src="../js/register.js"></script>
 </body>
 </html>
