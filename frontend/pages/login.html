@@ -3,41 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Docket</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <title>Docket · Sign in</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
-  <div class="auth-wrapper">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <i class="bi bi-folder2-open"></i> Docket
-      </div>
-      <p class="auth-subtitle">Document Management System</p>
+<div class="login-page">
 
-      <form id="login-form" novalidate>
-        <div class="mb-3">
-          <label for="email" class="form-label">Email address</label>
-          <input type="email" id="email" class="form-control" placeholder="admin@docket.com" required />
-        </div>
-        <div class="mb-4">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" id="password" class="form-control" placeholder="••••••••" required />
-        </div>
-        <button id="login-btn" type="submit" class="btn-auth">
-          <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+  <!-- Left story panel -->
+  <section class="login-story">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </span>
+      docket<span class="brand-period">.</span>
+    </div>
+    <div class="login-story-content">
+      <span class="eyebrow">A PLACE FOR EVERY DOCUMENT</span>
+      <h1>
+        Good work starts<br />
+        with a little<br />
+        <em>clarity.</em>
+      </h1>
+      <p>
+        Your team's knowledge, organized.<br />
+        Your next document, already within reach.
+      </p>
+      <div class="login-features">
+        <span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          One organized workspace
+        </span>
+        <span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          The right access, for the right people
+        </span>
+        <span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          Less searching. More doing.
+        </span>
+      </div>
+    </div>
+    <div class="login-story-footer">Built for teams. Made to keep things simple.</div>
+  </section>
+
+  <!-- Right form panel -->
+  <section class="login-form-side">
+    <div class="login-form-wrap">
+      <span class="login-tag"><span></span>YOUR TEAM'S SHARED SPACE</span>
+      <h2>Welcome back.</h2>
+      <p>Sign in and pick up where you left off.</p>
+
+      <form id="login-form">
+        <div id="login-error" class="error-message" style="display:none"></div>
+        <label>
+          Email address
+          <input type="email" id="email" autocomplete="username" required placeholder="you@company.com" value="admin@docket.com" />
+        </label>
+        <label>
+          Password
+          <div class="password-field">
+            <input type="password" id="password" autocomplete="current-password" required value="Docket123!" />
+            <button type="button" class="icon-button" id="toggle-pw" aria-label="Show password">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </label>
+        <button type="submit" class="button primary login-submit" id="login-btn">
+          Sign in to Docket
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </form>
 
-      <p class="auth-footer">
-        Don't have an account? <a href="register.html">Create one</a>
-      </p>
-    </div>
-  </div>
+      <!-- Demo role picker -->
+      <div class="demo-login">
+        <span class="eyebrow">EXPLORE THE LOCAL PREVIEW</span>
+        <p>Choose a demo role. Password: <code>Docket123!</code></p>
+        <div>
+          <button type="button" class="demo-role-btn selected" data-email="admin@docket.com">Administrator</button>
+          <button type="button" class="demo-role-btn" data-email="head@docket.com">Department head</button>
+          <button type="button" class="demo-role-btn" data-email="employee@docket.com">Employee</button>
+        </div>
+        <small>Demo data and uploads are stored on this computer.</small>
+      </div>
 
-  <script type="module" src="../js/login.js"></script>
+      <p class="login-help">Need an account? Contact your workspace administrator.</p>
+    </div>
+    <div class="login-copyright">Docket · Your documents, together.</div>
+  </section>
+
+</div>
+<script type="module" src="../js/login.js"></script>
+<script>
+  // Demo role buttons
+  document.querySelectorAll('.demo-role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.demo-role-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('email').value = btn.dataset.email;
+      document.getElementById('password').value = 'Docket123!';
+    });
+  });
+  // Password toggle
+  document.getElementById('toggle-pw').addEventListener('click', () => {
+    const pw = document.getElementById('password');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+  });
+</script>
 </body>
 </html>

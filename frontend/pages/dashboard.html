@@ -3,83 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Docket</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <title>Overview — Docket</title>
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body data-page="dashboard">
-<div id="app">
-  <!-- sidebar injected here -->
-
-  <main class="main-content">
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Welcome back, <span data-user-name>—</span></p>
-      </div>
-    </div>
-
-    <!-- Stat cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon-wrap blue"><i class="bi bi-file-earmark-text"></i></div>
-        <div>
-          <div class="stat-value" id="stat-docs">—</div>
-          <div class="stat-label">Total Documents</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon-wrap green"><i class="bi bi-tags"></i></div>
-        <div>
-          <div class="stat-value" id="stat-cats">—</div>
-          <div class="stat-label">Categories</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon-wrap orange"><i class="bi bi-people"></i></div>
-        <div>
-          <div class="stat-value" id="stat-users">—</div>
-          <div class="stat-label">Total Users</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon-wrap purple"><i class="bi bi-cloud-check"></i></div>
-        <div>
-          <div class="stat-value" id="stat-role">—</div>
-          <div class="stat-label">Your Role</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent uploads -->
-    <div class="panel" style="margin-top:1.5rem">
-      <div class="panel-header">
-        <span><i class="bi bi-clock-history me-2"></i>Recent Uploads</span>
-        <a href="documents.html" class="view-all-link">View all →</a>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Filename</th>
-              <th>Category</th>
-              <th>Uploaded By</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="recent-docs-body">
-            <tr><td colspan="4"><div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Loading…</p></div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-</div>
-
+<div id="app"><!-- sidebar + topbar injected by sidebar.js --></div>
 <script type="module">
-  import { injectSidebar } from '../js/sidebar.js';
+  import { injectSidebar, closeSidebar } from '../js/sidebar.js';
   import '../js/logout.js';
   injectSidebar();
 </script>
