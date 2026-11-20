@@ -6,7 +6,7 @@ const user = requireAuth();
 if (user) {
   renderUserInfo(user);
   loadCategories();
-  bindAddForm();
+  if (user.role === 'admin') bindAddForm();
 }
 
 async function loadCategories() {
@@ -18,46 +18,44 @@ async function loadCategories() {
 function renderTable(cats) {
   const tbody = document.getElementById('cats-tbody');
   if (!cats.length) {
-    tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-4">No categories yet.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="2"><div class="empty-state"><i class="bi bi-tags"></i><p>No categories yet.</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = cats.map((c) => `
+  const isAdmin = user.role === 'admin';
+  tbody.innerHTML = cats.map(c => `
     <tr>
-      <td>${esc(c.category_name)}</td>
+      <td><strong>${esc(c.category_name)}</strong></td>
       <td>
-        <button class="btn btn-sm btn-outline-danger btn-delete-cat" data-id="${c.id}">
+        ${isAdmin ? `<button class="btn-danger btn-delete-cat" data-id="${c.id}">
           <i class="bi bi-trash"></i> Delete
-        </button>
+        </button>` : '<span style="color:var(--text-muted);font-size:.8rem">—</span>'}
       </td>
-    </tr>
-  `).join('');
+    </tr>`).join('');
 
-  tbody.querySelectorAll('.btn-delete-cat').forEach((btn) => {
+  tbody.querySelectorAll('.btn-delete-cat').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm('Delete this category?')) return;
       const res = await categories.remove(btn.dataset.id);
-      if (res.success) { showToast('Category deleted.', 'success'); await loadCategories(); }
-      else { showToast(res.message, 'error'); }
+      showToast(res.success ? 'Deleted.' : res.message, res.success ? 'success' : 'error');
+      if (res.success) await loadCategories();
     });
   });
 }
 
 function bindAddForm() {
-  document.getElementById('add-category-form').addEventListener('submit', async (e) => {
+  document.getElementById('add-category-form').addEventListener('submit', async e => {
     e.preventDefault();
     const name = document.getElementById('category-name').value.trim();
-    if (!name) { showToast('Category name is required.', 'error'); return; }
+    if (!name) { showToast('Name is required.', 'error'); return; }
     const res = await categories.create({ category_name: name });
+    showToast(res.success ? 'Category added.' : res.message, res.success ? 'success' : 'error');
     if (res.success) {
-      showToast('Category added.', 'success');
       document.getElementById('category-name').value = '';
       await loadCategories();
-    } else {
-      showToast(res.message, 'error');
     }
   });
 }
 
-function esc(str) {
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }

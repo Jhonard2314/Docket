@@ -14,68 +14,64 @@ if (user) {
 async function loadDocuments(params = {}) {
   const res = await documents.list(params);
   if (!res.success) { showToast(res.message, 'error'); return; }
-  renderDocTable(res.documents);
+  renderTable(res.documents);
+  const counter = document.getElementById('doc-count');
+  if (counter) counter.textContent = res.documents.length + ' files';
 }
 
-function renderDocTable(docs) {
+function renderTable(docs) {
   const tbody = document.getElementById('docs-tbody');
   if (!docs.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No documents found.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+      <i class="bi bi-inbox"></i><p>No documents found.</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = docs.map((d) => `
+  tbody.innerHTML = docs.map(d => `
     <tr>
-      <td><i class="bi bi-file-earmark-text me-1 text-primary"></i>${esc(d.filename)}</td>
+      <td><div class="file-cell">${fileIcon(d.filename)}<span>${esc(d.filename)}</span></div></td>
       <td>${esc(d.category_name)}</td>
       <td>${esc(d.uploaded_by_name)}</td>
       <td>${new Date(d.upload_date).toLocaleDateString()}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary me-1 btn-download" data-id="${d.id}" title="Download">
-          <i class="bi bi-download"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-secondary me-1 btn-rename" data-id="${d.id}" data-name="${esc(d.filename)}" title="Rename">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${d.id}" title="Delete">
-          <i class="bi bi-trash"></i>
-        </button>
+        <div class="actions">
+          <button class="btn-icon download btn-download" data-id="${d.id}" title="Download"><i class="bi bi-download"></i></button>
+          <button class="btn-icon rename  btn-rename"   data-id="${d.id}" data-name="${esc(d.filename)}" title="Rename"><i class="bi bi-pencil"></i></button>
+          <button class="btn-icon delete  btn-delete"   data-id="${d.id}" title="Delete"><i class="bi bi-trash"></i></button>
+        </div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`).join('');
 
-  tbody.addEventListener('click', handleTableAction, { once: true });
+  document.getElementById('docs-tbody').addEventListener('click', handleAction, { once: true });
 }
 
-async function handleTableAction(e) {
+async function handleAction(e) {
   const btn = e.target.closest('button');
-  if (!btn) { document.getElementById('docs-tbody').addEventListener('click', handleTableAction, { once: true }); return; }
+  const tbody = document.getElementById('docs-tbody');
+  if (!btn) { tbody.addEventListener('click', handleAction, { once: true }); return; }
 
   const id = btn.dataset.id;
 
   if (btn.classList.contains('btn-download')) {
-    showToast('In mock mode, downloads open the actual file once connected to AWS S3.', 'info');
+    showToast('Download works once connected to AWS S3.', 'info');
+    tbody.addEventListener('click', handleAction, { once: true });
+    return;
   }
 
   if (btn.classList.contains('btn-rename')) {
-    const newName = prompt('Enter new filename:', btn.dataset.name);
-    if (!newName || !newName.trim()) { await loadDocuments(currentParams()); return; }
+    const newName = prompt('New filename:', btn.dataset.name);
+    if (!newName?.trim()) { await loadDocuments(currentParams()); return; }
     const res = await documents.rename(id, newName.trim());
-    if (res.success) { showToast('Document renamed.', 'success'); }
-    else { showToast(res.message, 'error'); }
+    showToast(res.success ? 'Renamed.' : res.message, res.success ? 'success' : 'error');
     await loadDocuments(currentParams());
     return;
   }
 
   if (btn.classList.contains('btn-delete')) {
-    if (!confirm('Delete this document? This cannot be undone.')) { await loadDocuments(currentParams()); return; }
+    if (!confirm('Delete this document?')) { await loadDocuments(currentParams()); return; }
     const res = await documents.remove(id);
-    if (res.success) { showToast('Document deleted.', 'success'); }
-    else { showToast(res.message, 'error'); }
+    showToast(res.success ? 'Deleted.' : res.message, res.success ? 'success' : 'error');
     await loadDocuments(currentParams());
-    return;
   }
-
-  await loadDocuments(currentParams());
 }
 
 async function loadCategories() {
@@ -87,13 +83,11 @@ async function loadCategories() {
 }
 
 function bindSearch() {
-  document.getElementById('search-form').addEventListener('submit', async (e) => {
+  document.getElementById('search-form').addEventListener('submit', async e => {
     e.preventDefault();
     await loadDocuments(currentParams());
   });
-  document.getElementById('filter-category').addEventListener('change', async () => {
-    await loadDocuments(currentParams());
-  });
+  document.getElementById('filter-category').addEventListener('change', () => loadDocuments(currentParams()));
 }
 
 function currentParams() {
@@ -103,31 +97,29 @@ function currentParams() {
 }
 
 function bindUploadForm() {
-  const form = document.getElementById('upload-form');
-  form.addEventListener('submit', async (e) => {
+  document.getElementById('upload-form').addEventListener('submit', async e => {
     e.preventDefault();
     const fileInput  = document.getElementById('upload-file');
     const categoryId = document.getElementById('upload-category').value;
-    if (!fileInput.files[0]) { showToast('Please select a file.', 'error'); return; }
-    if (!categoryId)         { showToast('Please select a category.', 'error'); return; }
+    if (!fileInput.files[0]) { showToast('Select a file first.', 'error'); return; }
+    if (!categoryId)         { showToast('Select a category.', 'error'); return; }
 
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
     fd.append('category_id', categoryId);
 
-    const submitBtn = form.querySelector('button[type=submit]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Uploading…';
+    const btn = document.getElementById('upload-submit-btn');
+    btn.disabled = true; btn.textContent = 'Uploading…';
 
     const res = await documents.upload(fd);
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Upload';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
 
     if (res.success) {
-      showToast('File uploaded successfully!', 'success');
-      form.reset();
+      showToast('Uploaded!', 'success');
+      e.target.reset();
       document.getElementById('file-name-display').textContent = '';
-      bootstrap.Modal.getInstance(document.getElementById('uploadModal'))?.hide();
+      document.getElementById('upload-modal').style.display = 'none';
       await loadDocuments();
     } else {
       showToast(res.message, 'error');
@@ -135,6 +127,14 @@ function bindUploadForm() {
   });
 }
 
-function esc(str) {
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fileIcon(name) {
+  const ext = (name || '').split('.').pop().toLowerCase();
+  if (ext === 'pdf')               return '<i class="bi bi-file-earmark-pdf file-icon-pdf"></i>';
+  if (['doc','docx'].includes(ext)) return '<i class="bi bi-file-earmark-word file-icon-doc"></i>';
+  if (['jpg','jpeg','png','gif'].includes(ext)) return '<i class="bi bi-file-earmark-image file-icon-img"></i>';
+  return '<i class="bi bi-file-earmark file-icon-other"></i>';
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
