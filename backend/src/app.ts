@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── Better Auth — /api/auth/* ─────────────────────────────────────────────────
-app.all('/api/auth/*splat', toNodeHandler(auth));
+app.all('/api/auth/*', toNodeHandler(auth));
 
 // ── GET /api/me — current session user ───────────────────────────────────────
 app.get('/api/me', requireAuth, (req: Request, res: Response) => {
