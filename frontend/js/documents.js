@@ -1,4 +1,4 @@
-import { documents, categories, adminDepartments } from './mockApi.js';
+import { documents, categories, adminDepartments } from './api.js';
 import { requireAuth, fileSize, isAdmin } from './auth.js';
 import { showToast } from './toast.js';
 

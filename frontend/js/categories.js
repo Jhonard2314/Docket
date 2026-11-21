@@ -1,4 +1,4 @@
-import { categories } from './mockApi.js';
+import { categories } from './api.js';
 import { requireAuth, isAdmin } from './auth.js';
 import { showToast } from './toast.js';
 

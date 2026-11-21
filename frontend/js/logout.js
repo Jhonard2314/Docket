@@ -1,11 +1,10 @@
-/**
- * logout.js — waits for sidebar to inject #logout-btn before binding.
- * Uses MutationObserver so it works regardless of injection timing.
- */
+import { auth } from './api.js';
+
 function bindLogout() {
   const btn = document.getElementById('logout-btn');
   if (btn) {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
+      await auth.logout();
       localStorage.removeItem('docket_user');
       window.location.href = 'login.html';
     });
@@ -14,7 +13,6 @@ function bindLogout() {
   return false;
 }
 
-// Try immediately, then watch DOM for the button
 if (!bindLogout()) {
   const observer = new MutationObserver(() => {
     if (bindLogout()) observer.disconnect();

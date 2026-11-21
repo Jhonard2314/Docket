@@ -1,4 +1,4 @@
-import { dashboard, categories } from './mockApi.js';
+import { dashboard, categories } from './api.js';
 import { requireAuth, fileSize, isAdmin } from './auth.js';
 
 const user = requireAuth();

@@ -1,4 +1,4 @@
-import { adminUsers, adminDepartments } from './mockApi.js';
+import { adminUsers, adminDepartments } from './api.js';
 import { requireAuth, isAdmin } from './auth.js';
 import { showToast } from './toast.js';
 

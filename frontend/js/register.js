@@ -1,4 +1,4 @@
-import { auth } from './mockApi.js';
+import { auth } from './api.js';
 import { showToast } from './toast.js';
 
 document.getElementById('register-form')?.addEventListener('submit', async e => {
