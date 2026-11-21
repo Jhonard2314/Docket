@@ -1,5 +1,6 @@
 import prisma    from '../config/db';
-import { Role }  from '@prisma/client';
+
+type Role = 'EMPLOYEE' | 'DEPARTMENT_HEAD' | 'ADMIN';
 
 const SELECT = {
   id: true, name: true, email: true, role: true,

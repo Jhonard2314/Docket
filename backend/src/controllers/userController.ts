@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { Role }              from '@prisma/client';
+
+type Role = 'EMPLOYEE' | 'DEPARTMENT_HEAD' | 'ADMIN';
 import * as svc              from '../services/userService';
 
 function errStatus(code: string) {

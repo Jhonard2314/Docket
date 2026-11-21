@@ -1,13 +1,21 @@
-import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool }     from 'pg';
 
 /**
- * Singleton Prisma client.
- * Re-uses the same instance across hot-reloads in dev to avoid exhausting connections.
+ * Prisma 7 requires a database adapter.
+ * PrismaClient is imported from the generated client path.
  */
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-const prisma: PrismaClient =
-  globalForPrisma.prisma ?? new PrismaClient({ log: ['error'] });
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaClient } = require('.prisma/client/default');
+
+const pool    = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+
+const globalForPrisma = globalThis as unknown as { prisma: any };
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 

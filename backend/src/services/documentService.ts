@@ -1,10 +1,12 @@
 import prisma              from '../config/db';
-import { Role, DocumentStatus } from '@prisma/client';
 import { deleteS3Object }  from '../utils/deleteS3Object';
 import { getPresignedUrl } from '../utils/presignedUrl';
 import { getPresignedPost } from '../utils/presignedPost';
 import { generateS3Key }   from '../utils/generateS3Key';
 import crypto              from 'crypto';
+
+type Role           = 'EMPLOYEE' | 'DEPARTMENT_HEAD' | 'ADMIN';
+type DocumentStatus = 'PENDING'  | 'READY'           | 'DELETING';
 
 // ── Shared document select ───────────────────────────────────────────────────
 
@@ -219,6 +221,6 @@ export async function getDashboard(userId: string, role: Role, departmentId: str
     documentCount,
     storageBytes: storageResult._sum.sizeBytes ?? 0,
     recentDocuments,
-    departments: departments.map(d => ({ id: d.id, name: d.name, count: d._count.documents })),
+    departments: departments.map((d: any) => ({ id: d.id, name: d.name, count: d._count.documents })),
   };
 }

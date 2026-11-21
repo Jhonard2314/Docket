@@ -10,7 +10,8 @@ import documentRoutes      from './routes/documentRoutes';
 import userRoutes          from './routes/userRoutes';
 import departmentRoutes    from './routes/departmentRoutes';
 import { getDashboard }    from './services/documentService';
-import { Role }            from '@prisma/client';
+
+type Role = 'EMPLOYEE' | 'DEPARTMENT_HEAD' | 'ADMIN';
 
 const app = express();
 
