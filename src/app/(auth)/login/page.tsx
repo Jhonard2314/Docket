@@ -12,8 +12,8 @@ import {
 import { api } from "@/lib/api-client";
 import { ErrorMessage } from "@/components/ui/shared";
 export default function Login() {
-  const [email, setEmail] = useState("admin@docket.local");
-  const [password, setPassword] = useState("Docket123!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -121,9 +121,9 @@ export default function Login() {
             </button>
           </form>
           <div className="demo-login">
-            <span className="eyebrow">EXPLORE THE LOCAL PREVIEW</span>
+            <span className="eyebrow">QUICK ACCESS</span>
             <p>
-              Choose a demo role. Password: <code>Docket123!</code>
+              Demo credentials — Password: <code>Docket123</code>
             </p>
             <div>
               {["admin", "head", "employee"].map((role) => (
@@ -132,7 +132,7 @@ export default function Login() {
                   type="button"
                   onClick={() => {
                     setEmail(`${role}@docket.local`);
-                    setPassword("Docket123!");
+                    setPassword("Docket123");
                   }}
                   className={email.startsWith(role + "@") ? "selected" : ""}
                 >
@@ -144,7 +144,7 @@ export default function Login() {
                 </button>
               ))}
             </div>
-            <small>Demo data and uploads are stored on this computer.</small>
+            <small>Data is stored in PostgreSQL on Amazon RDS.</small>
           </div>
           <p className="login-help">
             Need an account? Contact your workspace administrator.
