@@ -1,13 +1,11 @@
 /**
- * Seed script — creates departments, categories, and admin account.
+ * Seed script — departments, categories, and admin account.
  * Run: npx ts-node --transpile-only prisma/seed.ts
  */
 import { createHash, randomBytes } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { PrismaClient } = require(".prisma/client/default");
+import { PrismaClient } from "@prisma/client";
 
 function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
@@ -18,9 +16,8 @@ function hashPassword(password: string): string {
 async function main() {
   const pool    = new Pool({ connectionString: process.env.DATABASE_URL });
   const adapter = new PrismaPg(pool);
-  const prisma  = new PrismaClient({ adapter });
+  const prisma  = new PrismaClient({ adapter } as any);
 
-  // Departments
   const departments = [
     "Human Resources", "Finance", "Legal",
     "Operations", "IT & Technology", "Marketing",
@@ -30,7 +27,6 @@ async function main() {
   }
   console.log(`✓ ${departments.length} departments seeded.`);
 
-  // Categories
   const categories = [
     "Policy", "Report", "Contract", "Memo",
     "Presentation", "Invoice", "Manual", "Other",
@@ -40,7 +36,6 @@ async function main() {
   }
   console.log(`✓ ${categories.length} categories seeded.`);
 
-  // Admin account
   const adminEmail    = process.env.SEED_ADMIN_EMAIL    ?? "admin@docket.local";
   const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "Docket123!";
   const adminName     = process.env.SEED_ADMIN_NAME     ?? "System Administrator";
@@ -56,7 +51,7 @@ async function main() {
       isActive:     true,
     },
   });
-  console.log(`✓ Admin account: ${adminEmail}`);
+  console.log(`✓ Admin account: ${adminEmail} / ${adminPassword}`);
 
   await prisma.$disconnect();
   await pool.end();
