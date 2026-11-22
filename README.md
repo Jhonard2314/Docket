@@ -124,11 +124,11 @@ Login with any email/password — mockApi.js handles it in-memory.
 
 ## Authors
 
-- Joshua Castillejos
-- Justin Cedric Espe
+- Joshua  Castillejos
+- Justin Cedric  Espe
 - Shamier Repalda
 - Cj Rigor
 - Jhonard Rollo
 
-CCS4301 – Cloud Computing, 1st Semester 2026-2027
-University of the East — College of Engineering
+- CCS4301 – Cloud Computing, 1st Semester 2026-2027
+- University of the East — College of Engineering
