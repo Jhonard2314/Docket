@@ -1,0 +1,331 @@
+import "server-only";
+import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { prisma } from "@/server/db/prisma";
+import { canView, canManage } from "@/server/authorization";
+import type { CurrentUser, DocumentDto, Role } from "@/lib/contracts";
+import { MAX_FILE_SIZE } from "@/lib/contracts";
+import { hashPassword, verifyPassword } from "@/server/db/crypto";
+
+const s3 = new S3Client({ region: process.env.AWS_REGION ?? "ap-southeast-1" });
+const BUCKET = process.env.S3_BUCKET_NAME!;
+
+class ApiError extends Error {
+  constructor(public status: number, message: string) { super(message); }
+}
+function fail(status: number, message: string): never { throw new ApiError(status, message); }
+function required(v: unknown, label: string, max = 200): string {
+  if (typeof v !== "string" || !v.trim() || v.length > max)
+    fail(400, `${label} is required and must be under ${max} characters.`);
+  return (v as string).trim();
+}
+const ok = (data: unknown, status = 200) => NextResponse.json({ data }, { status });
+
+function toDto(user: CurrentUser, doc: any): DocumentDto {
+  const d: DocumentDto = {
+    id: doc.id,
+    title: doc.title,
+    description: doc.description ?? "",
+    category: { id: doc.category.id, name: doc.category.name },
+    department: { id: doc.department.id, name: doc.department.name },
+    owner: { id: doc.uploadedBy.id, name: doc.uploadedBy.name },
+    file: { name: doc.filename, contentType: doc.mimeType, sizeBytes: doc.sizeBytes },
+    createdAt: doc.createdAt.toISOString(),
+    updatedAt: doc.updatedAt.toISOString(),
+    permissions: { canDownload: true, canEdit: false, canDelete: false },
+  };
+  const manage = canManage(user, d);
+  d.permissions = { canDownload: true, canEdit: manage, canDelete: manage };
+  return d;
+}
+
+function publicUser(u: any): CurrentUser {
+  return {
+    id: u.id, name: u.name, email: u.email,
+    role: u.role as Role,
+    department: u.department ? { id: u.department.id, name: u.department.name } : null,
+  };
+}
+
+const DOC_INCLUDE = {
+  category:   { select: { id: true, name: true } },
+  department: { select: { id: true, name: true } },
+  uploadedBy: { select: { id: true, name: true } },
+};
+
+export async function handle(req: NextRequest): Promise<NextResponse> {
+  try {
+    const url   = req.nextUrl;
+    const parts = url.pathname.replace(/^\/api\//, "").split("/");
+    const method = req.method;
+
+    // ── Auth ────────────────────────────────────────────────────────────────
+    if (parts[0] === "auth") {
+      if (parts[1] === "login" && method === "POST") {
+        const body  = await req.json();
+        const email = required(body.email, "Email").toLowerCase();
+        const pass  = required(body.password, "Password", 256);
+        const match = await prisma.user.findFirst({
+          where: { email, isActive: true },
+          include: { department: { select: { id: true, name: true } } },
+        });
+        if (!match || !verifyPassword(pass, match.passwordHash))
+          fail(401, "Email or password is incorrect.");
+        const token = randomUUID();
+        await prisma.session.create({
+          data: { token, userId: match.id, expires: new Date(Date.now() + 86400000) },
+        });
+        const res = ok(publicUser(match));
+        res.cookies.set("docket-session", token, {
+          httpOnly: true, sameSite: "lax",
+          secure: url.protocol === "https:", path: "/", maxAge: 86400,
+        });
+        return res;
+      }
+      if (parts[1] === "logout" && method === "POST") {
+        const token = req.cookies.get("docket-session")?.value;
+        if (token) await prisma.session.deleteMany({ where: { token } });
+        const res = ok(null);
+        res.cookies.delete("docket-session");
+        return res;
+      }
+      fail(404, "Auth endpoint not found.");
+    }
+
+    // ── Require session ──────────────────────────────────────────────────────
+    const token   = req.cookies.get("docket-session")?.value;
+    const session = token ? await prisma.session.findFirst({
+      where: { token, expires: { gt: new Date() } },
+      include: { user: { include: { department: { select: { id: true, name: true } } } } },
+    }) : null;
+    const user = session?.user?.isActive ? session.user : null;
+    if (!user) fail(401, "Please sign in to continue.");
+    const cu = publicUser(user);
+
+    // ── Pagination helper ────────────────────────────────────────────────────
+    const pageSize = Math.max(1, Math.min(100, Number(url.searchParams.get("pageSize")) || 20));
+    const page     = Math.max(1, Number(url.searchParams.get("page")) || 1);
+    const list = (items: unknown[], total: number) => NextResponse.json({
+      data: items,
+      pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+    });
+
+    // ── /api/me ──────────────────────────────────────────────────────────────
+    if (parts[0] === "me") return ok(cu);
+
+    // ── /api/dashboard ───────────────────────────────────────────────────────
+    if (parts[0] === "dashboard") {
+      const deptFilter = cu.role !== "ADMIN" ? { departmentId: cu.department?.id ?? "__none__" } : {};
+      const [documentCount, agg, recentDocs, departments, categoryCount] = await prisma.$transaction([
+        prisma.document.count({ where: { status: "READY", ...deptFilter } }),
+        prisma.document.aggregate({ where: { status: "READY", ...deptFilter }, _sum: { sizeBytes: true } }),
+        prisma.document.findMany({ where: { status: "READY", ...deptFilter }, include: DOC_INCLUDE, orderBy: { createdAt: "desc" }, take: 5 }),
+        prisma.department.findMany({ include: { _count: { select: { documents: { where: { status: "READY", ...deptFilter } } } } } }),
+        prisma.category.count(),
+      ]);
+      return ok({
+        documentCount,
+        storageBytes: agg._sum.sizeBytes ?? 0,
+        recentDocuments: recentDocs.map((d: any) => toDto(cu, d)),
+        categoryCount,
+        departments: departments
+          .filter((d: any) => cu.role === "ADMIN" || d.id === cu.department?.id)
+          .map((d: any) => ({ id: d.id, name: d.name, count: d._count.documents })),
+      });
+    }
+
+    // ── /api/documents ───────────────────────────────────────────────────────
+    if (parts[0] === "documents") {
+      // Upload
+      if (parts[1] === "uploads" && method === "POST") {
+        const form = await req.formData();
+        const file = form.get("file");
+        if (!(file instanceof File) || !file.size) fail(400, "Select a file.");
+        if (file.size > MAX_FILE_SIZE) fail(413, "Files must be 10 MB or smaller.");
+
+        const ext = file.name.split(".").pop()?.toLowerCase();
+        const mimeMap: Record<string, string> = {
+          pdf: "application/pdf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          txt: "text/plain", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
+        };
+        if (!ext || !mimeMap[ext]) fail(415, "Use PDF, DOCX, XLSX, TXT, PNG, or JPEG.");
+
+        const bytes = Buffer.from(await file.arrayBuffer());
+        const valid = ext === "txt" ? !bytes.includes(0)
+          : ext === "pdf" ? bytes.subarray(0,5).toString() === "%PDF-"
+          : ext === "png" ? bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+          : ["jpg","jpeg"].includes(ext) ? bytes[0]===255 && bytes[1]===216 && bytes[2]===255
+          : bytes[0]===80 && bytes[1]===75;
+        if (!valid) fail(415, "File contents do not match its format.");
+
+        const category   = await prisma.category.findUnique({ where: { id: String(form.get("categoryId")) } });
+        const deptId     = cu.role === "ADMIN" ? String(form.get("departmentId")) : cu.department?.id;
+        const department = await prisma.department.findUnique({ where: { id: deptId ?? "" } });
+        if (!category || !department) fail(400, "Choose a valid category and department.");
+
+        const s3Key = `uploads/${user.id}/${randomUUID()}.${ext}`;
+        await s3.send(new (await import("@aws-sdk/client-s3")).PutObjectCommand({
+          Bucket: BUCKET, Key: s3Key, Body: bytes, ContentType: mimeMap[ext],
+        }));
+
+        const doc = await prisma.document.create({
+          data: {
+            title: required(form.get("title"), "Title"),
+            description: String(form.get("description") || ""),
+            filename: file.name, s3Key, mimeType: mimeMap[ext], sizeBytes: file.size,
+            status: "READY", categoryId: category.id, departmentId: department.id, uploadedById: user.id,
+          },
+          include: DOC_INCLUDE,
+        });
+        return ok(toDto(cu, doc), 201);
+      }
+
+      // List
+      if (!parts[1] && method === "GET") {
+        const q    = (url.searchParams.get("q") || "").toLowerCase();
+        const catId = url.searchParams.get("categoryId");
+        const deptId = url.searchParams.get("departmentId");
+        const sort  = url.searchParams.get("sort") || "newest";
+        const deptFilter = cu.role !== "ADMIN" ? { departmentId: cu.department?.id ?? "__none__" } : {};
+        const orderBy = sort === "oldest" ? { createdAt: "asc" as const }
+          : sort === "titleAsc"  ? { title: "asc" as const }
+          : sort === "titleDesc" ? { title: "desc" as const }
+          : { createdAt: "desc" as const };
+        const where: any = {
+          status: "READY", ...deptFilter,
+          ...(catId  && { categoryId: catId }),
+          ...(deptId && cu.role === "ADMIN" && { departmentId: deptId }),
+          ...(q && { OR: [{ title: { contains: q, mode: "insensitive" } }, { filename: { contains: q, mode: "insensitive" } }] }),
+        };
+        const [docs, total] = await prisma.$transaction([
+          prisma.document.findMany({ where, include: DOC_INCLUDE, orderBy, take: pageSize, skip: (page-1)*pageSize }),
+          prisma.document.count({ where }),
+        ]);
+        return list(docs.map((d: any) => toDto(cu, d)), total);
+      }
+
+      const doc = await prisma.document.findUnique({ where: { id: parts[1] }, include: DOC_INCLUDE });
+      const dto = doc ? toDto(cu, doc) : null;
+      if (!doc || !canView(cu, dto!)) {
+        if (method === "DELETE") return new NextResponse(null, { status: 204 });
+        fail(404, "Document not found.");
+      }
+
+      // Download — presigned URL
+      if (parts[2] === "download" && method === "GET") {
+        const url = await getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: doc.s3Key }), { expiresIn: 900 });
+        return NextResponse.redirect(url);
+      }
+
+      if (method === "GET") return ok(dto);
+
+      if (!canManage(cu, dto!)) fail(403, "You do not have permission to change this document.");
+
+      if (method === "PATCH") {
+        const body = await req.json();
+        const allowed = ["title", "description", "categoryId"];
+        if (Object.keys(body).some(k => !allowed.includes(k))) fail(400, "Only title, description, and category can be edited.");
+        const category = body.categoryId ? await prisma.category.findUnique({ where: { id: body.categoryId } }) : doc.category;
+        if (!category) fail(400, "Choose a valid category.");
+        const updated = await prisma.document.update({
+          where: { id: doc.id },
+          data: { title: required(body.title ?? doc.title, "Title"), description: String(body.description ?? doc.description ?? ""), categoryId: category.id },
+          include: DOC_INCLUDE,
+        });
+        return ok(toDto(cu, updated));
+      }
+
+      if (method === "DELETE") {
+        await prisma.document.update({ where: { id: doc.id }, data: { status: "DELETING" } });
+        await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: doc.s3Key })).catch(e => { if (e.name !== "NoSuchKey") throw e; });
+        await prisma.document.delete({ where: { id: doc.id } });
+        return new NextResponse(null, { status: 204 });
+      }
+    }
+
+    // ── /api/categories ───────────────────────────────────────────────────────
+    const collection = parts[0] === "categories" ? "category"
+      : parts[0] === "admin" && parts[1] === "departments" ? "department"
+      : null;
+
+    if (collection) {
+      const id  = parts[collection === "category" ? 1 : 2];
+      const q   = url.searchParams.get("q") || "";
+      if (method === "GET") {
+        const items = await (prisma[collection] as any).findMany({
+          where: q ? { name: { contains: q, mode: "insensitive" } } : undefined,
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+          take: pageSize, skip: (page-1)*pageSize,
+        });
+        const total = await (prisma[collection] as any).count({ where: q ? { name: { contains: q, mode: "insensitive" } } : undefined });
+        return list(items, total);
+      }
+      if (cu.role !== "ADMIN") fail(403, "Administrator access required.");
+      const body = await req.json();
+      const name = required(body.name, "Name", 100);
+      if (method === "POST") {
+        const item = await (prisma[collection] as any).create({ data: { name }, select: { id: true, name: true } });
+        return ok(item, 201);
+      }
+      if (method === "PATCH") {
+        const item = await (prisma[collection] as any).update({ where: { id }, data: { name }, select: { id: true, name: true } });
+        return ok(item);
+      }
+      if (method === "DELETE") {
+        await (prisma[collection] as any).delete({ where: { id } });
+        return new NextResponse(null, { status: 204 });
+      }
+    }
+
+    // ── /api/admin/users ──────────────────────────────────────────────────────
+    if (parts[0] === "admin" && parts[1] === "users") {
+      if (cu.role !== "ADMIN") fail(403, "Administrator access required.");
+      if (method === "GET") {
+        const items = await prisma.user.findMany({
+          include: { department: { select: { id: true, name: true } } },
+          orderBy: { createdAt: "desc" },
+          take: pageSize, skip: (page-1)*pageSize,
+        });
+        const total = await prisma.user.count();
+        return list(items.map((u: any) => ({ ...publicUser(u), isActive: u.isActive, createdAt: u.createdAt.toISOString() })), total);
+      }
+      const body = await req.json();
+      if (method === "POST") {
+        const email = required(body.email, "Email").toLowerCase();
+        const pass  = required(body.password, "Password", 256);
+        if (pass.length < 8) fail(400, "Password must be at least 8 characters.");
+        const existing = await prisma.user.findUnique({ where: { email } });
+        if (existing) fail(409, "Email already registered.");
+        const user = await prisma.user.create({
+          data: { name: required(body.name, "Name"), email, passwordHash: hashPassword(pass), role: body.role || "EMPLOYEE", departmentId: body.departmentId || null },
+          include: { department: { select: { id: true, name: true } } },
+        });
+        return ok({ ...publicUser(user), isActive: user.isActive, createdAt: user.createdAt.toISOString() }, 201);
+      }
+      const existing = await prisma.user.findUnique({ where: { id: parts[2] }, include: { department: { select: { id: true, name: true } } } });
+      if (!existing) fail(404, "User not found.");
+      if (method === "PATCH") {
+        const updated = await prisma.user.update({
+          where: { id: parts[2] },
+          data: { name: body.name ?? existing.name, role: body.role ?? existing.role, departmentId: body.departmentId ?? existing.departmentId, isActive: body.isActive ?? existing.isActive },
+          include: { department: { select: { id: true, name: true } } },
+        });
+        return ok({ ...publicUser(updated), isActive: updated.isActive, createdAt: updated.createdAt.toISOString() });
+      }
+    }
+
+    fail(404, "Endpoint not found.");
+  } catch (error) {
+    const known = error instanceof ApiError;
+    if (!known) console.error(error);
+    return NextResponse.json(
+      { error: { code: known ? `HTTP_${(error as ApiError).status}` : "SERVICE_ERROR", message: known ? (error as ApiError).message : "Service unavailable." } },
+      { status: known ? (error as ApiError).status : 503 },
+    );
+  }
+}
