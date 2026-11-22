@@ -5,6 +5,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import "dotenv/config";
 import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
 
