@@ -56,3 +56,4 @@ PROJECT_DOCUMENTATION.docx
 
 # Local demo records and uploaded files
 /.data/
+node_modules/ 
