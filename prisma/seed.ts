@@ -5,7 +5,8 @@
 import { createHash, randomBytes } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
