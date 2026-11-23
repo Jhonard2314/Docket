@@ -555,18 +555,7 @@ main {
 .pip-3 {
   background: #9eafb0;
 }
-.welcome-banner {
-  position: relative;
-  border: 1px solid #dfe6d6;
-  border-radius: 10px;
-  background: #eaf0e1;
-  min-height: 258px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 29px 35px;
-}
+.welcome-banner { display: none !important; }
 .banner-copy {
   position: relative;
   z-index: 1;
@@ -1645,9 +1634,7 @@ tbody tr:hover {
   main {
     padding-top: 42px;
   }
-  .welcome-banner {
-    min-height: 280px;
-  }
+  
   .stat-card {
     padding: 23px;
   }
@@ -1833,10 +1820,7 @@ tbody tr:hover {
   .stat-card > small {
     font-size: 9px;
   }
-  .welcome-banner {
-    padding: 25px;
-    min-height: 240px;
-  }
+  
   .paper-scene {
     width: 230px;
     transform: scale(0.75);
@@ -1943,10 +1927,7 @@ tbody tr:hover {
   .page-heading > .button {
     margin-top: 15px;
   }
-  .welcome-banner {
-    padding: 23px;
-    min-height: 230px;
-  }
+  
   .paper-scene {
     position: absolute;
     right: -60px;
@@ -2029,4 +2010,5 @@ tbody tr:hover {
 }
 
 /* Remove welcome banner */
-.welcome-banner { display: none !important; }
+
+
