@@ -77,10 +77,17 @@ Open http://127.0.0.1:3000
 
 ## Deployment (EC2)
 
+> Run these commands **on the EC2 server via SSH**, not on your local PC.
+
 ```bash
+# 1. SSH into EC2 (run this on your local PC first)
+ssh -i "docket-key.pem" ubuntu@54.254.200.247
+
+# 2. Once connected to EC2, run:
 cd ~/Docket---Document-Management-System
 git pull origin main --rebase
-cd frontend && npm run build
+cd frontend
+npm run build
 sudo systemctl restart docket
 ```
 
