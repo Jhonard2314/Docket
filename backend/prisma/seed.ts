@@ -39,7 +39,7 @@ async function main() {
   console.log(`✓ ${categories.length} categories seeded.`);
 
   const adminEmail    = process.env.SEED_ADMIN_EMAIL    ?? "admin@docket.local";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "Docket123!";
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "Docket123";
   const adminName     = process.env.SEED_ADMIN_NAME     ?? "System Administrator";
 
   await prisma.user.upsert({
@@ -54,6 +54,38 @@ async function main() {
     },
   });
   console.log(`✓ Admin account: ${adminEmail} / ${adminPassword}`);
+
+  // Department Head account
+  const hrDept = await prisma.department.findFirst({ where: { name: "Human Resources" } });
+  await prisma.user.upsert({
+    where:  { email: "head@docket.local" },
+    update: {},
+    create: {
+      name:         "Department Head",
+      email:        "head@docket.local",
+      passwordHash: hashPassword("Docket123"),
+      role:         "DEPARTMENT_HEAD",
+      isActive:     true,
+      departmentId: hrDept?.id,
+    },
+  });
+  console.log(`✓ Department Head account: head@docket.local / Docket123`);
+
+  // Employee account
+  const financeDept = await prisma.department.findFirst({ where: { name: "Finance" } });
+  await prisma.user.upsert({
+    where:  { email: "employee@docket.local" },
+    update: {},
+    create: {
+      name:         "Employee User",
+      email:        "employee@docket.local",
+      passwordHash: hashPassword("Docket123"),
+      role:         "EMPLOYEE",
+      isActive:     true,
+      departmentId: financeDept?.id,
+    },
+  });
+  console.log(`✓ Employee account: employee@docket.local / Docket123`);
 
   await prisma.$disconnect();
   await pool.end();
