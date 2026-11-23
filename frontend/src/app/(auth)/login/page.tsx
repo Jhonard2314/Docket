@@ -135,28 +135,35 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Quick access */}
-          <div className="demo-login" style={{ marginTop: "2rem" }}>
-            <span className="eyebrow" style={{ fontSize: "11px", letterSpacing: "1px" }}>
-              QUICK ACCESS
-            </span>
-            <p style={{ fontSize: "13px", color: "var(--muted)", margin: "0.5rem 0 0.75rem" }}>
-              Select a role — password is <code style={{ background: "#e8ede8", padding: "2px 6px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Docket123</code>
-            </p>
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              {["admin", "head", "employee"].map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => { setEmail(`${role}@docket.local`); setPassword("Docket123"); }}
-                  className={email.startsWith(role + "@") ? "selected" : ""}
-                  style={{ fontSize: "13px", fontWeight: 500, padding: "0.35rem 0.85rem" }}
-                >
-                  {role === "admin" ? "Administrator" : role === "head" ? "Department head" : "Employee"}
-                </button>
-              ))}
+          {/* Demo accounts */}
+          <div style={{ marginTop: "2.5rem", padding: "1.25rem", background: "#f9faf7", border: "1px solid #e6e9e2", borderRadius: "10px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", color: "var(--muted)", marginBottom: "1rem" }}>
+              DEMO ACCOUNTS
             </div>
-            <small style={{ display: "block", marginTop: "0.75rem", color: "var(--muted)", fontSize: "12px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "13px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ fontWeight: 600, fontSize: "14px" }}>Administrator</strong>
+                <div style={{ textAlign: "right", lineHeight: 1.5, color: "var(--muted)" }}>
+                  <div><code style={{ background: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>admin@docket.local</code></div>
+                  <div><code style={{ background: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>Docket123</code></div>
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ fontWeight: 600, fontSize: "14px" }}>Department Head</strong>
+                <div style={{ textAlign: "right", lineHeight: 1.5, color: "var(--muted)" }}>
+                  <div><code style={{ background: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>head@docket.local</code></div>
+                  <div><code style={{ background: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>Docket123</code></div>
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ fontWeight: 600, fontSize: "14px" }}>Employee</strong>
+                <div style={{ textAlign: "right", lineHeight: 1.5, color: "var(--muted)" }}>
+                  <div><code style={{ background: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>employee@docket.local</code></div>
+                  <div><code style={{ background: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>Docket123</code></div>
+                </div>
+              </div>
+            </div>
+            <small style={{ display: "block", marginTop: "1rem", color: "var(--muted)", fontSize: "12px" }}>
               Data is stored in PostgreSQL on Amazon RDS.
             </small>
           </div>
