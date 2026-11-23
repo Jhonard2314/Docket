@@ -8,6 +8,7 @@ import {
   HardDrive,
   Building2,
   Tags,
+  Folder,
 } from "lucide-react";
 import { useUser } from "@/components/layout/workspace-shell";
 import { useResource } from "@/hooks/use-resource";
