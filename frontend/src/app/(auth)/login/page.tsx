@@ -11,12 +11,14 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { ErrorMessage } from "@/components/ui/shared";
+
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [show, setShow]         = useState(false);
+  const [error, setError]       = useState("");
+  const [busy, setBusy]         = useState(false);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -32,60 +34,62 @@ export default function Login() {
       setBusy(false);
     }
   }
+
   return (
     <div className="login-page">
+
+      {/* ── Left story panel ───────────────────────────────────────────── */}
       <section className="login-story">
         <div className="brand">
-          <span className="brand-mark">
-            <Layers size={24} />
-          </span>
+          <span className="brand-mark"><Layers size={24} /></span>
           docket<span className="brand-period">.</span>
         </div>
+
         <div className="login-story-content">
           <span className="eyebrow">A PLACE FOR EVERY DOCUMENT</span>
           <h1>
-            Good work starts
-            <br />
-            with a little
-            <br />
+            Good work starts<br />
+            with a little<br />
             <em>clarity.</em>
           </h1>
-          <p>
-            Your team’s knowledge, organized.
-            <br />
+          <p style={{ marginTop: "1rem", lineHeight: 1.7, fontSize: "15px" }}>
+            Your team&apos;s knowledge, organized.<br />
             Your next document, already within reach.
           </p>
-          <div className="login-features">
-            <span>
-              <FolderOpen size={19} />
-              One organized workspace
-            </span>
-            <span>
-              <ShieldCheck size={19} />
-              The right access, for the right people
-            </span>
-            <span>
-              <Files size={19} />
-              Less searching. More doing.
-            </span>
+          <div className="login-features" style={{ marginTop: "2rem" }}>
+            <span><FolderOpen size={18} /> One organized workspace</span>
+            <span><ShieldCheck size={18} /> The right access, for the right people</span>
+            <span><Files size={18} /> Less searching. More doing.</span>
           </div>
         </div>
+
         <div className="login-story-footer">
           Built for teams. Made to keep things simple.
         </div>
       </section>
+
+      {/* ── Right form panel ───────────────────────────────────────────── */}
       <section className="login-form-side">
         <div className="login-form-wrap">
+
           <span className="login-tag">
-            <span />
-            YOUR TEAM’S SHARED SPACE
+            <span />YOUR TEAM&apos;S SHARED SPACE
           </span>
-          <h2>Welcome back.</h2>
-          <p>Sign in and pick up where you left off.</p>
-          <form onSubmit={submit}>
+
+          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginTop: "0.5rem", letterSpacing: "-0.5px" }}>
+            Welcome back.
+          </h2>
+          <p style={{ color: "var(--muted)", marginTop: "0.4rem", marginBottom: "2rem", fontSize: "14px" }}>
+            Sign in and pick up where you left off.
+          </p>
+
+          <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             <ErrorMessage message={error} />
-            <label>
-              Email address
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "var(--muted)" }}>
+                Email address
+              </label>
               <input
                 type="email"
                 autoComplete="username"
@@ -93,10 +97,14 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
+                style={{ padding: "0.7rem 0.9rem", fontSize: "15px", borderRadius: "8px", border: "1.5px solid var(--border)", outline: "none", width: "100%" }}
               />
-            </label>
-            <label>
-              Password
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "var(--muted)" }}>
+                Password
+              </label>
               <div className="password-field">
                 <input
                   type={show ? "text" : "password"}
@@ -104,6 +112,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  style={{ padding: "0.7rem 0.9rem", fontSize: "15px" }}
                 />
                 <button
                   type="button"
@@ -114,45 +123,50 @@ export default function Login() {
                   {show ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </label>
-            <button disabled={busy} className="button primary login-submit">
+            </div>
+
+            <button
+              disabled={busy}
+              className="button primary login-submit"
+              style={{ marginTop: "0.25rem", padding: "0.8rem 1.25rem", fontSize: "15px", fontWeight: 600 }}
+            >
               {busy ? "Signing in…" : "Sign in to Docket"}
               <ArrowRight size={18} />
             </button>
           </form>
-          <div className="demo-login">
-            <span className="eyebrow">QUICK ACCESS</span>
-            <p>
-              Demo credentials — Password: <code>Docket123</code>
+
+          {/* Quick access */}
+          <div className="demo-login" style={{ marginTop: "2rem" }}>
+            <span className="eyebrow" style={{ fontSize: "11px", letterSpacing: "1px" }}>
+              QUICK ACCESS
+            </span>
+            <p style={{ fontSize: "13px", color: "var(--muted)", margin: "0.5rem 0 0.75rem" }}>
+              Select a role — password is <code style={{ background: "#e8ede8", padding: "2px 6px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Docket123</code>
             </p>
-            <div>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               {["admin", "head", "employee"].map((role) => (
                 <button
                   key={role}
                   type="button"
-                  onClick={() => {
-                    setEmail(`${role}@docket.local`);
-                    setPassword("Docket123");
-                  }}
+                  onClick={() => { setEmail(`${role}@docket.local`); setPassword("Docket123"); }}
                   className={email.startsWith(role + "@") ? "selected" : ""}
+                  style={{ fontSize: "13px", fontWeight: 500, padding: "0.35rem 0.85rem" }}
                 >
-                  {role === "admin"
-                    ? "Administrator"
-                    : role === "head"
-                      ? "Department head"
-                      : "Employee"}
+                  {role === "admin" ? "Administrator" : role === "head" ? "Department head" : "Employee"}
                 </button>
               ))}
             </div>
-            <small>Data is stored in PostgreSQL on Amazon RDS.</small>
+            <small style={{ display: "block", marginTop: "0.75rem", color: "var(--muted)", fontSize: "12px" }}>
+              Data is stored in PostgreSQL on Amazon RDS.
+            </small>
           </div>
-          <p className="login-help">
+
+          <p className="login-help" style={{ marginTop: "1.5rem", fontSize: "13px" }}>
             Need an account? Contact your workspace administrator.
           </p>
         </div>
-        <div className="login-copyright">
-          Docket · Your documents, together.
-        </div>
+
+        <div className="login-copyright">Docket · Your documents, together.</div>
       </section>
     </div>
   );

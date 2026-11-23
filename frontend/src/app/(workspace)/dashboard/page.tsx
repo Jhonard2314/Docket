@@ -8,7 +8,6 @@ import {
   HardDrive,
   Building2,
   Tags,
-  Folder,
 } from "lucide-react";
 import { useUser } from "@/components/layout/workspace-shell";
 import { useResource } from "@/hooks/use-resource";
@@ -82,48 +81,7 @@ export default function Dashboard() {
               </div>
             ))}
           </section>
-          <section className="welcome-banner">
-            <div className="banner-copy">
-              <span className="eyebrow">A CLEARER WAY TO WORK</span>
-              <h2>
-                Less clutter.
-                <br />
-                More clarity.
-              </h2>
-              <p>
-                Bring your team’s documents together.
-                <br />
-                Find what matters, and get back to doing.
-              </p>
-              <Link href="/documents">
-                Explore your documents <ArrowRight size={17} />
-              </Link>
-            </div>
-            <div className="paper-scene" aria-hidden="true">
-              <div className="orbit orbit-one" />
-              <div className="orbit orbit-two" />
-              <span className="scene-spark spark-one">✦</span>
-              <span className="scene-spark spark-two">+</span>
-              <div className="paper paper-back" />
-              <div className="paper paper-front">
-                <span className="paper-logo">
-                  <Files size={21} />
-                </span>
-                <div className="paper-line dark" />
-                <div className="paper-line" />
-                <div className="paper-line short" />
-                <span className="paper-chip">
-                  All in one place <span>✓</span>
-                </span>
-                <div className="paper-line" />
-                <div className="paper-line short" />
-              </div>
-              <span className="floating-check">✓</span>
-              <span className="floating-label">
-                <Folder size={14} /> Made for teamwork
-              </span>
-            </div>
-          </section>
+          
           <section className="section-block">
             <div className="section-title">
               <div>
@@ -170,3 +128,4 @@ export default function Dashboard() {
     </>
   );
 }
+
