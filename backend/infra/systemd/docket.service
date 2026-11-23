@@ -5,14 +5,14 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/home/ubuntu/Docket---Document-Management-System
+WorkingDirectory=/home/ubuntu/Docket---Document-Management-System/frontend
 ExecStart=/usr/bin/node node_modules/.bin/next start --hostname 127.0.0.1
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=docket
-EnvironmentFile=/home/ubuntu/Docket---Document-Management-System/.env
+EnvironmentFile=/home/ubuntu/Docket---Document-Management-System/frontend/.env
 
 [Install]
 WantedBy=multi-user.target
