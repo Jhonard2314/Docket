@@ -2027,3 +2027,6 @@ tbody tr:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* Remove welcome banner */
+.welcome-banner { display: none !important; }
