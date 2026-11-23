@@ -1,55 +1,96 @@
-# Docket
+# Docket — Document Management System
 
-Docket is a web-based document management system for employees, department heads, and administrators to securely upload, organize, retrieve, and manage digital documents.
+A cloud-based document management system built on AWS for CCS4301 – Cloud Computing.
 
-## Run the frontend preview
+**Live site:** http://54.254.200.247
 
-Use Node.js 22 LTS. Run `npm ci`, then `npm run dev`, and open http://127.0.0.1:3000.
-No AWS credentials or database setup are required yet.
+## Tech Stack
 
-| Demo role | Email | Password |
-| --- | --- | --- |
-| Administrator | admin@docket.local | Docket123! |
-| Department head | head@docket.local | Docket123! |
-| Employee | employee@docket.local | Docket123! |
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16, React 19, Tailwind CSS 4 |
+| Backend | Next.js Route Handlers (Node.js runtime) |
+| Database | PostgreSQL 16 on Amazon RDS |
+| ORM | Prisma 7 |
+| File Storage | Amazon S3 (private bucket + presigned URLs) |
+| Hosting | Amazon EC2 (Ubuntu 22.04) + Nginx |
+| Process | systemd |
 
-The role buttons fill the login form; click Sign in. Head and employee accounts belong to Human Resources.
+## Project Structure
 
-## Implemented
-
-- Responsive dashboard, department summaries, recent documents, and mobile navigation.
-- Document search, category/department filters, sorting, and URL-based pagination.
-- Actual upload with transfer progress, details, download, editing, and confirmed deletion.
-- Account creation/editing/deactivation, roles, categories, and department management.
-- Cookie sessions, hashed passwords, server-side permissions, validation, and feedback states.
-
-## Temporary local backend
-
-This is a single-process local demo. Records and sessions persist in `.data/store.json`; uploaded files live in `.data/files/`. They are ignored by Git. Restarting preserves them. Use sample files only; demo credentials are public. Production mode is disabled by default. For a local production-build check only, set `DOCKET_ENABLE_LOCAL_DEMO=true` before `npm start`. Do not publicly deploy demo mode.
-
-Deliberate differences from the final API contract:
-
-- `/api/auth/login` and `/api/auth/logout` use local cookie sessions, not Better Auth.
-- `POST /api/documents/uploads` accepts multipart form data and returns a completed document. Downloads stream authorized local files. S3 intent/completion and signed URLs are deferred.
-
-Server logic is in `src/server/handler.ts`, local persistence in `src/server/db/local.ts`, and permissions in `src/server/authorization/`. Thin route adapters and shared DTOs keep the frontend ready for backend replacement. The UI uses custom styled native controls; shadcn/ui can be added where useful later. Demo files are actual text files, labeled TXT.
-
-## Verification
-
-```sh
-npm run typecheck
-npm run lint
-npm run build
-# With the local server running:
-npm test
+```
+Docket/
+├── frontend/              # Next.js application
+│   ├── src/
+│   │   ├── app/           # Pages and API routes
+│   │   ├── components/    # UI components
+│   │   ├── server/        # Server-only logic (DB, auth, S3)
+│   │   └── lib/           # Shared types and utilities
+│   ├── prisma/            # Database schema
+│   └── package.json
+│
+├── backend/
+│   ├── database/          # SQL scripts for assignment
+│   ├── prisma/            # Prisma schema + seed
+│   └── infra/             # Nginx, systemd, deploy script
+│
+└── README.md
 ```
 
-The integration test covers sessions, upload/read/edit/download/delete, department isolation, mutation permissions, invalid file rejection, and cross-origin mutation denial. It cleans up its own document. Use unchanged demo accounts/departments for the test.
+## Local Development
 
-## Next phase
+```bash
+# 1. Clone
+git clone https://github.com/Jhonard2314/Docket.git
+cd Docket/frontend
 
-After frontend review, add Prisma/PostgreSQL and the course SQL deliverables, connect Better Auth, and replace local storage with private S3 and verified upload finalization. Add production login throttling, stronger Office-file inspection, cleanup/retry behavior, and EC2/Nginx/systemd/IAM deployment configuration. The local backend does not yet satisfy live AWS/SQL requirements.
+# 2. Install dependencies
+npm install
 
-The requested final folder structure remains the target. Prisma, SQL, and infrastructure folders will be populated with their actual implementations after team configurations arrive.
+# 3. Create .env file (get values from team lead)
+cp .env.example .env
+# Fill in DATABASE_URL, AWS_REGION, S3_BUCKET_NAME
 
-Planning references: [Frontend](docs/plans/FRONTEND_PLAN.md), [Backend](docs/plans/BACKEND_PLAN.md), [API contract](docs/plans/API_CONTRACT.md), [Delivery](docs/plans/PROJECT_PLAN.md).
+# 4. Generate Prisma client
+npm run db:generate
+
+# 5. Run dev server
+npm run dev
+```
+
+Open http://127.0.0.1:3000
+
+## Default Credentials
+
+| Role | Email | Password |
+|---|---|---|
+| Administrator | admin@docket.local | Docket123 |
+
+## AWS Services
+
+- **EC2** — Ubuntu 22.04, t3.micro, runs Next.js behind Nginx
+- **RDS** — PostgreSQL 16, private subnet, Single-AZ
+- **S3** — Private bucket, files accessed via presigned URLs
+- **VPC** — Custom VPC, public + private subnets
+- **IAM** — EC2 instance role (no hardcoded keys)
+- **Security Groups** — HTTP/HTTPS open; PostgreSQL only from EC2
+
+## Deployment (EC2)
+
+```bash
+cd ~/Docket---Document-Management-System
+git pull origin main --rebase
+cd frontend && npm run build
+sudo systemctl restart docket
+```
+
+## Authors
+
+- Joshua Castillejos
+- Justin Cedric Espe
+- Shamier Repalda
+- Cj Rigor
+- Jhonard Rollo
+
+CCS4301 – Cloud Computing, 1st Semester 2026-2027
+University of the East — College of Engineering

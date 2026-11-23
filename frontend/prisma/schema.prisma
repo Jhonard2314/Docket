@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  EMPLOYEE
+  DEPARTMENT_HEAD
+  ADMIN
+}
+
+enum DocumentStatus {
+  PENDING
+  READY
+  DELETING
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         Role        @default(EMPLOYEE)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  sessions     Session[]
+  documents    Document[]
+
+  @@map("users")
+}
+
+model Session {
+  id      String   @id @default(cuid())
+  token   String   @unique
+  userId  String
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Department {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  users     User[]
+  documents Document[]
+
+  @@map("departments")
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  documents Document[]
+
+  @@map("categories")
+}
+
+model Document {
+  id           String         @id @default(cuid())
+  title        String
+  description  String         @default("")
+  filename     String
+  s3Key        String         @unique
+  mimeType     String
+  sizeBytes    Int
+  status       DocumentStatus @default(READY)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  categoryId   String
+  category     Category       @relation(fields: [categoryId], references: [id])
+  departmentId String
+  department   Department     @relation(fields: [departmentId], references: [id])
+  uploadedById String
+  uploadedBy   User           @relation(fields: [uploadedById], references: [id])
+
+  @@map("documents")
+}
