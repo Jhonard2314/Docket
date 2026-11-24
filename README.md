@@ -65,6 +65,39 @@ Open http://127.0.0.1:3000
 | Role | Email | Password |
 |---|---|---|
 | Administrator | admin@docket.local | Docket123 |
+| Department Head | head@docket.local | Docket123 |
+| Employee | employee@docket.local | Docket123 |
+
+## Features
+
+### Role-Based Access Control
+- **Employee** — Upload documents, view approved documents and own pending uploads
+- **Department Head** — Approve/archive documents in their department, all employee features
+- **Administrator** — Full system access, manage users, departments, categories, approve any document
+
+### Document Approval Workflow
+- Employee uploads are **PENDING** by default and require approval
+- Department Heads and Admins can upload directly as **APPROVED**
+- Department Heads can approve/archive documents within their department
+- Administrators can approve/archive any document
+- Real-time pending approval alerts for Department Heads and Admins
+
+### Document Management
+- Upload documents with metadata (title, description, category, department)
+- Files stored securely on Amazon S3 with presigned URL access
+- Document status tracking: PENDING, APPROVED, ARCHIVED
+- Filter and search by department, category, status
+- Download documents with single-use presigned URLs
+
+### User Management (Admin Only)
+- Create, update, and delete users
+- Assign roles and departments
+- System administrator (admin@docket.local) is protected from deletion
+
+### Department & Category Management (Admin Only)
+- Organize documents by department and category
+- Track document count per department
+- Manage organizational structure
 
 ## AWS Services
 
@@ -78,11 +111,30 @@ Open http://127.0.0.1:3000
 ## Deployment (EC2)
 
 ```bash
-cd ~/Docket---Document-Management-System
+# Deploy latest changes
+cd ~/Docket---Document-Management-System/frontend
 git pull origin main --rebase
-cd frontend && npm run build
+rm -rf .next
+npm run build
 sudo systemctl restart docket
 ```
+
+## Recent Updates
+
+### UI/UX Improvements
+- ✅ Improved typography with higher contrast colors for better readability
+- ✅ Changed from green-tinted text to professional neutral grays
+- ✅ Removed promotional banners and footer text for cleaner interface
+- ✅ Simplified page title to "Docket"
+- ✅ Enhanced login page readability with darker, more legible text
+
+### Backend Features
+- ✅ Document approval workflow implementation
+- ✅ Status-based filtering (Pending, Approved, Archived)
+- ✅ Department Head privileges and authorization
+- ✅ User deletion with system admin protection
+- ✅ Pending approvals dashboard and alerts
+- ✅ Database migration for approval workflow fields
 
 ## Authors
 
