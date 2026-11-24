@@ -130,9 +130,8 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
         ? { status: { in: ["APPROVED", "PENDING"] as const }, OR: [{ status: "APPROVED" }, { uploadedById: user.id }] }
         : { status: { in: ["APPROVED", "PENDING"] as const } };
       
-      const [documentCount, pendingCount, agg, recentDocs, departments, categoryCount] = await prisma.$transaction([
+      const [documentCount, agg, recentDocs, departments, categoryCount] = await prisma.$transaction([
         prisma.document.count({ where: { status: "APPROVED", ...deptFilter } }),
-        cu.role !== "EMPLOYEE" ? prisma.document.count({ where: { status: "PENDING", ...deptFilter } }) : Promise.resolve(0),
         prisma.document.aggregate({ where: { status: "APPROVED", ...deptFilter }, _sum: { sizeBytes: true } }),
         prisma.document.findMany({ 
           where: { status: { in: ["APPROVED", "PENDING"] as const }, ...deptFilter }, 
@@ -151,6 +150,11 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
         }),
         prisma.category.count(),
       ]);
+      
+      // Get pending count separately for non-employees
+      const pendingCount = cu.role !== "EMPLOYEE" 
+        ? await prisma.document.count({ where: { status: "PENDING", ...deptFilter } })
+        : undefined;
       
       return ok({
         documentCount,
