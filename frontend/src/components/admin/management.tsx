@@ -212,7 +212,18 @@ export default function Management({ kind }: { kind: Kind }) {
                         >
                           <Pencil size={16} />
                         </button>
-                        {kind !== "users" && (
+                        {kind === "users" ? (
+                          // Only show delete for users who aren't the system administrator
+                          item.email !== "admin@docket.local" && (
+                            <button
+                              className="icon-button"
+                              onClick={() => open("delete", item)}
+                              aria-label={`Delete ${item.name}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )
+                        ) : (
                           <button
                             className="icon-button"
                             onClick={() => open("delete", item)}
@@ -257,7 +268,7 @@ export default function Management({ kind }: { kind: Kind }) {
                   disabled={busy}
                   onClick={() => submit()}
                 >
-                  {busy ? "Deleting…" : "Delete"}
+                  {busy ? "Deleting…" : kind === "users" ? "Delete account" : "Delete"}
                 </button>
               </div>
             </>

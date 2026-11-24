@@ -454,6 +454,14 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
         });
         return ok({ ...publicUser(updated), isActive: updated.isActive, createdAt: updated.createdAt.toISOString() });
       }
+      if (method === "DELETE") {
+        // Prevent deleting the system administrator
+        if (existing.email === "admin@docket.local") {
+          fail(403, "The system administrator account cannot be deleted.");
+        }
+        await prisma.user.delete({ where: { id: parts[2] } });
+        return new NextResponse(null, { status: 204 });
+      }
     }
 
     fail(404, "Endpoint not found.");
