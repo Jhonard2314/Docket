@@ -157,11 +157,14 @@ export function WorkspaceShell({
               <div className="user-info">
                 <strong>{user.name}</strong>
                 <small>
-                  {user.role === "ADMIN"
-                    ? "Administrator"
-                    : user.role === "DEPARTMENT_HEAD"
-                      ? "Department head"
-                      : "Employee"}
+                  <span className={`role-badge role-${user.role.toLowerCase()}`}>
+                    {user.role === "ADMIN"
+                      ? "Administrator"
+                      : user.role === "DEPARTMENT_HEAD"
+                        ? "Department Head"
+                        : "Employee"}
+                  </span>
+                  {user.department && ` · ${user.department.name}`}
                 </small>
               </div>
               <span className="avatar">{initials(user.name)}</span>

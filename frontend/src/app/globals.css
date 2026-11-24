@@ -458,14 +458,42 @@ hr {
   line-height: 1.6;
 }
 .user-info strong {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   display: block;
+  color: #2d4a3a;
 }
 .user-info small {
-  display: block;
-  color: #98a08f;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: #7a8e77;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.role-admin {
+  background: #e8f5e3;
+  color: #3d6447;
+  border: 1px solid #c4e3bb;
+}
+.role-department_head {
+  background: #f0eef9;
+  color: #5a4d7a;
+  border: 1px solid #d4ceeb;
+}
+.role-employee {
+  background: #f5f6f2;
+  color: #6b7c68;
+  border: 1px solid #e2e6dc;
 }
 .avatar {
   display: flex;

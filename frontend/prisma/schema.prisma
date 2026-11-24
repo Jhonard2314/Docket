@@ -14,22 +14,24 @@ enum Role {
 
 enum DocumentStatus {
   PENDING
-  READY
+  APPROVED
+  ARCHIVED
   DELETING
 }
 
 model User {
-  id           String      @id @default(cuid())
-  name         String
-  email        String      @unique
-  passwordHash String
-  role         Role        @default(EMPLOYEE)
-  isActive     Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  sessions     Session[]
-  documents    Document[]
+  id              String      @id @default(cuid())
+  name            String
+  email           String      @unique
+  passwordHash    String
+  role            Role        @default(EMPLOYEE)
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  departmentId    String?
+  department      Department? @relation(fields: [departmentId], references: [id])
+  sessions        Session[]
+  documents       Document[]  @relation("UploadedDocuments")
+  approvedDocs    Document[]  @relation("ApprovedDocuments")
 
   @@map("users")
 }
@@ -45,10 +47,12 @@ model Session {
 }
 
 model Department {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  users     User[]
-  documents Document[]
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String     @default("")
+  createdAt   DateTime   @default(now())
+  users       User[]
+  documents   Document[]
 
   @@map("departments")
 }
@@ -69,15 +73,19 @@ model Document {
   s3Key        String         @unique
   mimeType     String
   sizeBytes    Int
-  status       DocumentStatus @default(READY)
+  status       DocumentStatus @default(PENDING)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  approvedAt   DateTime?
+  archivedAt   DateTime?
   categoryId   String
   category     Category       @relation(fields: [categoryId], references: [id])
   departmentId String
   department   Department     @relation(fields: [departmentId], references: [id])
   uploadedById String
-  uploadedBy   User           @relation(fields: [uploadedById], references: [id])
+  uploadedBy   User           @relation("UploadedDocuments", fields: [uploadedById], references: [id])
+  approvedById String?
+  approvedBy   User?          @relation("ApprovedDocuments", fields: [approvedById], references: [id])
 
   @@map("documents")
 }

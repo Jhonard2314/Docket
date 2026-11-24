@@ -5,7 +5,7 @@ import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { prisma } from "@/server/db/prisma";
-import { canView, canManage } from "@/server/authorization";
+import { canView, canManage, canApprove, canArchive, canBulkAction } from "@/server/authorization";
 import type { CurrentUser, DocumentDto, Role } from "@/lib/contracts";
 import { MAX_FILE_SIZE } from "@/lib/contracts";
 import { hashPassword, verifyPassword } from "@/server/db/crypto";
@@ -33,8 +33,12 @@ function toDto(user: CurrentUser, doc: any): DocumentDto {
     department: { id: doc.department.id, name: doc.department.name },
     owner: { id: doc.uploadedBy.id, name: doc.uploadedBy.name },
     file: { name: doc.filename, contentType: doc.mimeType, sizeBytes: doc.sizeBytes },
+    status: doc.status,
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
+    approvedAt: doc.approvedAt?.toISOString() ?? null,
+    approvedBy: doc.approvedBy ? { id: doc.approvedBy.id, name: doc.approvedBy.name } : null,
+    archivedAt: doc.archivedAt?.toISOString() ?? null,
     permissions: { canDownload: true, canEdit: false, canDelete: false },
   };
   const manage = canManage(user, d);
@@ -54,6 +58,7 @@ const DOC_INCLUDE = {
   category:   { select: { id: true, name: true } },
   department: { select: { id: true, name: true } },
   uploadedBy: { select: { id: true, name: true } },
+  approvedBy: { select: { id: true, name: true } },
 };
 
 export async function handle(req: NextRequest): Promise<NextResponse> {
@@ -119,15 +124,37 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
     // ── /api/dashboard ───────────────────────────────────────────────────────
     if (parts[0] === "dashboard") {
       const deptFilter = cu.role !== "ADMIN" ? { departmentId: cu.department?.id ?? "__none__" } : {};
-      const [documentCount, agg, recentDocs, departments, categoryCount] = await prisma.$transaction([
-        prisma.document.count({ where: { status: "READY", ...deptFilter } }),
-        prisma.document.aggregate({ where: { status: "READY", ...deptFilter }, _sum: { sizeBytes: true } }),
-        prisma.document.findMany({ where: { status: "READY", ...deptFilter }, include: DOC_INCLUDE, orderBy: { createdAt: "desc" }, take: 5 }),
-        prisma.department.findMany({ include: { _count: { select: { documents: { where: { status: "READY", ...deptFilter } } } } } }),
+      
+      // Build status filter based on role
+      const statusFilter = cu.role === "EMPLOYEE" 
+        ? { status: { in: ["APPROVED", "PENDING"] as const }, OR: [{ status: "APPROVED" }, { uploadedById: user.id }] }
+        : { status: { in: ["APPROVED", "PENDING"] as const } };
+      
+      const [documentCount, pendingCount, agg, recentDocs, departments, categoryCount] = await prisma.$transaction([
+        prisma.document.count({ where: { status: "APPROVED", ...deptFilter } }),
+        cu.role !== "EMPLOYEE" ? prisma.document.count({ where: { status: "PENDING", ...deptFilter } }) : Promise.resolve(0),
+        prisma.document.aggregate({ where: { status: "APPROVED", ...deptFilter }, _sum: { sizeBytes: true } }),
+        prisma.document.findMany({ 
+          where: { status: { in: ["APPROVED", "PENDING"] as const }, ...deptFilter }, 
+          include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } }, 
+          orderBy: { createdAt: "desc" }, 
+          take: 5 
+        }),
+        prisma.department.findMany({ 
+          include: { 
+            _count: { 
+              select: { 
+                documents: { where: { status: "APPROVED", ...deptFilter } } 
+              } 
+            } 
+          } 
+        }),
         prisma.category.count(),
       ]);
+      
       return ok({
         documentCount,
+        ...(cu.role !== "EMPLOYEE" && { pendingCount }),
         storageBytes: agg._sum.sizeBytes ?? 0,
         recentDocuments: recentDocs.map((d: any) => toDto(cu, d)),
         categoryCount,
@@ -177,11 +204,52 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
             title: required(form.get("title"), "Title"),
             description: String(form.get("description") || ""),
             filename: file.name, s3Key, mimeType: mimeMap[ext], sizeBytes: file.size,
-            status: "READY", categoryId: category.id, departmentId: department.id, uploadedById: user.id,
+            status: cu.role === "EMPLOYEE" ? "PENDING" : "APPROVED",
+            ...(cu.role !== "EMPLOYEE" && { approvedById: user.id, approvedAt: new Date() }),
+            categoryId: category.id, departmentId: department.id, uploadedById: user.id,
           },
-          include: DOC_INCLUDE,
+          include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } },
         });
         return ok(toDto(cu, doc), 201);
+      }
+
+      // Bulk actions (POST /api/documents/bulk)
+      if (parts[1] === "bulk" && method === "POST") {
+        if (!canBulkAction(cu)) fail(403, "Bulk actions are only available to department heads and administrators.");
+        const body = await req.json();
+        const action = body.action; // "approve", "archive", "delete"
+        const ids = Array.isArray(body.ids) ? body.ids : [];
+        if (!ids.length || ids.length > 100) fail(400, "Provide 1-100 document IDs.");
+        
+        const deptFilter = cu.role !== "ADMIN" ? { departmentId: cu.department?.id ?? "__none__" } : {};
+        const docs = await prisma.document.findMany({ 
+          where: { id: { in: ids }, ...deptFilter },
+          include: DOC_INCLUDE,
+        });
+        
+        if (docs.length !== ids.length) fail(400, "Some documents were not found or you don't have access.");
+        
+        if (action === "approve") {
+          await prisma.document.updateMany({
+            where: { id: { in: ids }, status: "PENDING" },
+            data: { status: "APPROVED", approvedById: user.id, approvedAt: new Date() },
+          });
+          return ok({ updated: docs.length });
+        } else if (action === "archive") {
+          await prisma.document.updateMany({
+            where: { id: { in: ids }, status: "APPROVED" },
+            data: { status: "ARCHIVED", archivedAt: new Date() },
+          });
+          return ok({ updated: docs.length });
+        } else if (action === "delete") {
+          for (const doc of docs) {
+            await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: doc.s3Key })).catch(e => { if (e.name !== "NoSuchKey") throw e; });
+          }
+          await prisma.document.deleteMany({ where: { id: { in: ids } } });
+          return ok({ deleted: docs.length });
+        }
+        
+        fail(400, "Invalid action. Use 'approve', 'archive', or 'delete'.");
       }
 
       // List
@@ -189,20 +257,44 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
         const q    = (url.searchParams.get("q") || "").toLowerCase();
         const catId = url.searchParams.get("categoryId");
         const deptId = url.searchParams.get("departmentId");
+        const statusParam = url.searchParams.get("status"); // "pending", "approved", "archived"
         const sort  = url.searchParams.get("sort") || "newest";
         const deptFilter = cu.role !== "ADMIN" ? { departmentId: cu.department?.id ?? "__none__" } : {};
         const orderBy = sort === "oldest" ? { createdAt: "asc" as const }
           : sort === "titleAsc"  ? { title: "asc" as const }
           : sort === "titleDesc" ? { title: "desc" as const }
           : { createdAt: "desc" as const };
+        
+        // Status filter
+        let statusFilter: any = {};
+        if (statusParam === "pending") {
+          statusFilter = { status: "PENDING" };
+        } else if (statusParam === "archived") {
+          statusFilter = { status: "ARCHIVED" };
+        } else {
+          // Default: show approved docs, plus user's own pending uploads
+          if (cu.role === "EMPLOYEE") {
+            statusFilter = { OR: [{ status: "APPROVED" }, { status: "PENDING", uploadedById: user.id }] };
+          } else {
+            statusFilter = { status: { in: ["APPROVED", "PENDING"] as const } };
+          }
+        }
+        
         const where: any = {
-          status: "READY", ...deptFilter,
+          ...statusFilter, 
+          ...deptFilter,
           ...(catId  && { categoryId: catId }),
           ...(deptId && cu.role === "ADMIN" && { departmentId: deptId }),
           ...(q && { OR: [{ title: { contains: q, mode: "insensitive" } }, { filename: { contains: q, mode: "insensitive" } }] }),
         };
         const [docs, total] = await prisma.$transaction([
-          prisma.document.findMany({ where, include: DOC_INCLUDE, orderBy, take: pageSize, skip: (page-1)*pageSize }),
+          prisma.document.findMany({ 
+            where, 
+            include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } }, 
+            orderBy, 
+            take: pageSize, 
+            skip: (page-1)*pageSize 
+          }),
           prisma.document.count({ where }),
         ]);
         return list(docs.map((d: any) => toDto(cu, d)), total);
@@ -222,6 +314,42 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
       }
 
       if (method === "GET") return ok(dto);
+
+      // Approve document (POST /api/documents/:id/approve)
+      if (parts[2] === "approve" && method === "POST") {
+        if (!canApprove(cu, dto!)) fail(403, "You do not have permission to approve this document.");
+        if (doc.status !== "PENDING") fail(400, "Only pending documents can be approved.");
+        const updated = await prisma.document.update({
+          where: { id: doc.id },
+          data: { status: "APPROVED", approvedById: user.id, approvedAt: new Date() },
+          include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } },
+        });
+        return ok(toDto(cu, updated));
+      }
+
+      // Archive document (POST /api/documents/:id/archive)
+      if (parts[2] === "archive" && method === "POST") {
+        if (!canArchive(cu, dto!)) fail(403, "You do not have permission to archive this document.");
+        if (doc.status !== "APPROVED") fail(400, "Only approved documents can be archived.");
+        const updated = await prisma.document.update({
+          where: { id: doc.id },
+          data: { status: "ARCHIVED", archivedAt: new Date() },
+          include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } },
+        });
+        return ok(toDto(cu, updated));
+      }
+
+      // Restore document (POST /api/documents/:id/restore)
+      if (parts[2] === "restore" && method === "POST") {
+        if (!canArchive(cu, dto!)) fail(403, "You do not have permission to restore this document.");
+        if (doc.status !== "ARCHIVED") fail(400, "Only archived documents can be restored.");
+        const updated = await prisma.document.update({
+          where: { id: doc.id },
+          data: { status: "APPROVED", archivedAt: null },
+          include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } },
+        });
+        return ok(toDto(cu, updated));
+      }
 
       if (!canManage(cu, dto!)) fail(403, "You do not have permission to change this document.");
 

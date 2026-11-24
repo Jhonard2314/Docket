@@ -8,6 +8,8 @@ export type CurrentUser = {
   department: NamedRef | null;
 };
 export type AdminUser = CurrentUser & { isActive: boolean; createdAt: string };
+export type DocumentStatus = "PENDING" | "APPROVED" | "ARCHIVED" | "DELETING";
+
 export type DocumentDto = {
   id: string;
   title: string;
@@ -16,16 +18,32 @@ export type DocumentDto = {
   department: NamedRef;
   owner: { id: string; name: string };
   file: { name: string; contentType: string; sizeBytes: number };
+  status: DocumentStatus;
   createdAt: string;
   updatedAt: string;
-  permissions: { canEdit: boolean; canDelete: boolean; canDownload: boolean };
+  approvedAt?: string | null;
+  approvedBy?: { id: string; name: string } | null;
+  archivedAt?: string | null;
+  permissions: { 
+    canEdit: boolean; 
+    canDelete: boolean; 
+    canDownload: boolean;
+    canApprove?: boolean;
+    canArchive?: boolean;
+    canRestore?: boolean;
+  };
 };
 export type DashboardDto = {
   documentCount: number;
+  pendingCount?: number; // For dept heads and admins
   storageBytes: number;
   recentDocuments: DocumentDto[];
-  departments: (NamedRef & { count: number })[];
+  departments: (NamedRef & { count: number; pendingCount?: number })[];
   categoryCount: number;
+  userStats?: { // For dept heads
+    uploads: number;
+    lastUpload: string | null;
+  };
 };
 export type ListResponse<T> = {
   data: T[];
