@@ -49,7 +49,7 @@ npm install
 
 # 3. Create .env file (get values from team lead)
 cp .env.example .env
-# Fill in DATABASE_URL, AWS_REGION, S3_BUCKET_NAME
+# Fill in DATABASE_URL, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME
 
 # 4. Generate Prisma client
 npm run db:generate
@@ -58,7 +58,7 @@ npm run db:generate
 npm run dev
 ```
 
-Open http://127.0.0.1:3000
+Open http://localhost:3000
 
 ## Default Credentials
 
