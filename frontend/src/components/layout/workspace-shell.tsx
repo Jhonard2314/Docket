@@ -110,14 +110,6 @@ export function WorkspaceShell({
             </>
           )}
           <div className="sidebar-bottom">
-            <div className="sidebar-note">
-              <ShieldCheck size={21} />
-              <strong>A little more organized.</strong>
-              <p>One shared space for everything your team needs.</p>
-              <Link href="/documents/upload">
-                Add a document <ArrowUpRight size={15} />
-              </Link>
-            </div>
             <div className="local-indicator">
               <span />
               Local preview <span className="local-tag">DEMO</span>
