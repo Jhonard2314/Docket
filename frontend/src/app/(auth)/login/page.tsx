@@ -63,9 +63,7 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="login-story-footer">
-          Built for teams. Made to keep things simple.
-        </div>
+
       </section>
 
       {/* ── Right form panel ───────────────────────────────────────────── */}
@@ -134,13 +132,7 @@ export default function Login() {
               <ArrowRight size={18} />
             </button>
           </form>
-
-          <p className="login-help" style={{ marginTop: "2rem", fontSize: "13px" }}>
-            Need an account? Contact your workspace administrator.
-          </p>
         </div>
-
-        <div className="login-copyright">Docket · Your documents, together.</div>
       </section>
     </div>
   );

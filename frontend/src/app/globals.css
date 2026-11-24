@@ -1589,8 +1589,10 @@ tbody tr:hover {
   z-index: 1;
 }
 .login-story-content .eyebrow {
-  color: #82976b;
-  font-size: 10px;
+  color: #6b7f5a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 .login-story h1 {
   font-family: Georgia, serif;
@@ -1598,16 +1600,16 @@ tbody tr:hover {
   line-height: 1.06;
   font-weight: 400;
   letter-spacing: -2.2px;
-  color: #3b5b31;
+  color: #2d4a26;
   margin-top: 23px;
 }
 .login-story h1 em {
-  color: #8a9d6f;
+  color: #5a7347;
   font-weight: 400;
 }
 .login-story-content > p {
-  font-size: 14px;
-  color: #8d9c7c;
+  font-size: 15px;
+  color: #4a5d3e;
   line-height: 1.9;
   margin-top: 26px;
 }
@@ -1616,19 +1618,14 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  font-size: 11px;
-  color: #7d9266;
+  font-size: 14px;
+  color: #3d5536;
+  font-weight: 500;
 }
 .login-features > span {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.login-story-footer {
-  position: relative;
-  z-index: 1;
-  color: #9aa988;
-  font-size: 10px;
 }
 .login-form-side {
   display: flex;
@@ -1642,13 +1639,15 @@ tbody tr:hover {
   max-width: 355px;
 }
 .login-tag {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.5px;
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #8e9e7c;
+  color: #5a6a4e;
   margin-bottom: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 .login-tag > span {
   width: 5px;
