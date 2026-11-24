@@ -14,7 +14,7 @@ export default function PendingApprovals() {
   const [approving, setApproving] = useState<string | null>(null);
   const [error, setError] = useState("");
   
-  const { data, error: fetchError, loading, reload } = useResource<ListResponse<DocumentDto>>(
+  const { data, error: fetchError, loading, refresh } = useResource<ListResponse<DocumentDto>>(
     "/documents?status=pending&pageSize=50"
   );
 
@@ -37,7 +37,7 @@ export default function PendingApprovals() {
     setError("");
     try {
       await api(`/documents/${id}/approve`, { method: "POST" });
-      reload();
+      refresh();
     } catch (e) {
       setError((e as Error).message);
     } finally {
