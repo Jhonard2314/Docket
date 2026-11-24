@@ -2085,3 +2085,106 @@ tbody tr:hover {
 /* Remove welcome banner */
 
 
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border: 1px solid;
+}
+.status-pending {
+  background: #fff9e6;
+  color: #8b7a2f;
+  border-color: #e6d89f;
+}
+.status-approved {
+  background: #e8f5e3;
+  color: #3d6447;
+  border-color: #c4e3bb;
+}
+.status-archived {
+  background: #f5f6f2;
+  color: #6b7c68;
+  border-color: #d9ddd3;
+}
+.status-deleting {
+  background: #fef2f2;
+  color: #8b4a4a;
+  border-color: #f1c9c9;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #7a8e77;
+}
+.empty-state svg {
+  margin: 0 auto 20px;
+  color: #a4b897;
+}
+.empty-state h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d4a3a;
+  margin-bottom: 8px;
+}
+.empty-state p {
+  font-size: 14px;
+  color: #7a8e77;
+}
+
+/* Small button variant */
+.button.small {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.button.small svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Row actions */
+.row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Alert banner */
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  background: #fff9e6;
+  border: 1px solid #e6d89f;
+  border-radius: 10px;
+  margin-bottom: 32px;
+}
+.alert-banner svg {
+  color: #8b7a2f;
+  flex-shrink: 0;
+}
+.alert-banner strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d4a3a;
+  margin-bottom: 4px;
+}
+.alert-banner p {
+  font-size: 13px;
+  color: #6b7c68;
+  margin: 0;
+}
+.alert-banner .button {
+  margin-left: auto;
+  flex-shrink: 0;
+}

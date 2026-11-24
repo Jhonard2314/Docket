@@ -12,6 +12,8 @@ import {
   Building2,
   User,
   Tags,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { useResource } from "@/hooks/use-resource";
 import { api } from "@/lib/api-client";
@@ -23,7 +25,7 @@ export default function DocumentDetails({ id }: { id: string }) {
     `/documents/${id}`,
   );
   const cats = useResource<ListResponse<NamedRef>>("/categories?pageSize=100");
-  const [modal, setModal] = useState<"edit" | "delete" | null>(null);
+  const [modal, setModal] = useState<"edit" | "delete" | "approve" | "archive" | "restore" | null>(null);
   const [failure, setFailure] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
@@ -53,6 +55,45 @@ export default function DocumentDetails({ id }: { id: string }) {
     try {
       await api(`/documents/${id}`, { method: "DELETE" });
       router.push("/documents");
+    } catch (e) {
+      setFailure((e as Error).message);
+      setBusy(false);
+    }
+  }
+  
+  async function handleApprove() {
+    setBusy(true);
+    setFailure("");
+    try {
+      await api(`/documents/${id}/approve`, { method: "POST" });
+      setModal(null);
+      refresh();
+    } catch (e) {
+      setFailure((e as Error).message);
+      setBusy(false);
+    }
+  }
+  
+  async function handleArchive() {
+    setBusy(true);
+    setFailure("");
+    try {
+      await api(`/documents/${id}/archive`, { method: "POST" });
+      setModal(null);
+      refresh();
+    } catch (e) {
+      setFailure((e as Error).message);
+      setBusy(false);
+    }
+  }
+  
+  async function handleRestore() {
+    setBusy(true);
+    setFailure("");
+    try {
+      await api(`/documents/${id}/restore`, { method: "POST" });
+      setModal(null);
+      refresh();
     } catch (e) {
       setFailure((e as Error).message);
       setBusy(false);
@@ -177,12 +218,49 @@ export default function DocumentDetails({ id }: { id: string }) {
                   </button>
                 </div>
               )}
+              
+              {/* Approval/Archive actions */}
+              {(doc.permissions.canApprove || doc.permissions.canArchive || doc.permissions.canRestore) && (
+                <div className="document-actions workflow-actions">
+                  {doc.permissions.canApprove && (
+                    <button
+                      className="button primary"
+                      onClick={() => setModal("approve")}
+                    >
+                      <CheckCircle2 size={16} />
+                      Approve document
+                    </button>
+                  )}
+                  {doc.permissions.canArchive && (
+                    <button
+                      className="button secondary"
+                      onClick={() => setModal("archive")}
+                    >
+                      <Archive size={16} />
+                      Archive document
+                    </button>
+                  )}
+                  {doc.permissions.canRestore && (
+                    <button
+                      className="button primary"
+                      onClick={() => setModal("restore")}
+                    >
+                      <RotateCcw size={16} />
+                      Restore document
+                    </button>
+                  )}
+                </div>
+              )}
             </aside>
           </div>
           {modal && (
             <Modal
               title={
-                modal === "edit" ? "Edit document details" : "Delete document?"
+                modal === "edit" ? "Edit document details" 
+                : modal === "delete" ? "Delete document?"
+                : modal === "approve" ? "Approve this document?"
+                : modal === "archive" ? "Archive this document?"
+                : "Restore this document?"
               }
               onClose={() => {
                 if (!busy) setModal(null);

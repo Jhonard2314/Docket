@@ -9,6 +9,7 @@ import {
   Building2,
   Tags,
   Folder,
+  Clock,
 } from "lucide-react";
 import { useUser } from "@/components/layout/workspace-shell";
 import { useResource } from "@/hooks/use-resource";
@@ -42,6 +43,20 @@ export default function Dashboard() {
       {loading && <Loading />}
       {d && (
         <>
+          {/* Show pending count for dept heads and admins */}
+          {user.role !== "EMPLOYEE" && d.pendingCount !== undefined && d.pendingCount > 0 && (
+            <div className="alert-banner">
+              <Clock size={20} />
+              <div>
+                <strong>{d.pendingCount} document{d.pendingCount !== 1 ? "s" : ""} awaiting your approval</strong>
+                <p>Review and approve pending uploads from your team.</p>
+              </div>
+              <Link href="/admin/pending" className="button small primary">
+                Review now
+              </Link>
+            </div>
+          )}
+          
           <section className="stats-grid" aria-label="Workspace statistics">
             {[
               {

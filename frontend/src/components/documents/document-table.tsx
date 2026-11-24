@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, Download } from "lucide-react";
 import type { DocumentDto } from "@/lib/contracts";
 import { FileIcon, Empty } from "@/components/ui/shared";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { dateLabel, fileSize, initials } from "@/lib/utils";
 export function DocumentTable({ documents }: { documents: DocumentDto[] }) {
   if (!documents.length)
@@ -18,6 +19,7 @@ export function DocumentTable({ documents }: { documents: DocumentDto[] }) {
         <thead>
           <tr>
             <th>Document name</th>
+            <th>Status</th>
             <th>Department</th>
             <th>Category</th>
             <th>Uploaded</th>
@@ -40,6 +42,9 @@ export function DocumentTable({ documents }: { documents: DocumentDto[] }) {
                     </small>
                   </span>
                 </Link>
+              </td>
+              <td>
+                <StatusBadge status={doc.status} />
               </td>
               <td>
                 <span

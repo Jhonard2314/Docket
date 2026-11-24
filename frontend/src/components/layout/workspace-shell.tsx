@@ -38,6 +38,7 @@ export function WorkspaceShell({
     { href: "/documents", label: "All documents", icon: Files },
   ];
   const admin = [
+    { href: "/admin/pending", label: "Pending approvals", icon: ShieldCheck },
     { href: "/admin/users", label: "Team members", icon: Users },
     { href: "/admin/departments", label: "Departments", icon: Building2 },
     { href: "/admin/categories", label: "Categories", icon: Tags },
@@ -90,6 +91,22 @@ export function WorkspaceShell({
             <>
               <p className="nav-label admin-label">MANAGEMENT</p>
               <nav aria-label="Administration">{admin.map(item)}</nav>
+            </>
+          )}
+          {user.role === "DEPARTMENT_HEAD" && (
+            <>
+              <p className="nav-label admin-label">DEPARTMENT</p>
+              <nav aria-label="Department management">
+                <Link
+                  href="/admin/pending"
+                  className={`nav-link ${pathname.startsWith("/admin/pending") ? "active" : ""}`}
+                  onClick={() => setOpen(false)}
+                >
+                  <ShieldCheck size={18} />
+                  Pending approvals
+                  {pathname.startsWith("/admin/pending") && <span className="nav-dot" />}
+                </Link>
+              </nav>
             </>
           )}
           <div className="sidebar-bottom">
