@@ -304,7 +304,12 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
         return list(docs.map((d: any) => toDto(cu, d)), total);
       }
 
-      const doc = await prisma.document.findUnique({ where: { id: parts[1] }, include: DOC_INCLUDE });
+      // Individual document routes (must have parts[1] as ID)
+      if (!parts[1] || parts[1] === "uploads" || parts[1] === "bulk") {
+        fail(404, "Endpoint not found.");
+      }
+
+      const doc = await prisma.document.findUnique({ where: { id: parts[1] }, include: { ...DOC_INCLUDE, approvedBy: { select: { id: true, name: true } } } });
       const dto = doc ? toDto(cu, doc) : null;
       if (!doc || !canView(cu, dto!)) {
         if (method === "DELETE") return new NextResponse(null, { status: 204 });
