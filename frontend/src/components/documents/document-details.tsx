@@ -344,3 +344,4 @@ export default function DocumentDetails({ id }: { id: string }) {
     </>
   );
 }
+
