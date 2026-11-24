@@ -82,7 +82,7 @@ export function WorkspaceShell({
           <div className="workspace-label">
             <span className="workspace-icon">D</span>
             <div>
-              docket<small>Document management</small>
+              Docket workspace<small>Document management</small>
             </div>
           </div>
           <p className="nav-label">WORKSPACE</p>
