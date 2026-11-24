@@ -110,10 +110,6 @@ export function WorkspaceShell({
             </>
           )}
           <div className="sidebar-bottom">
-            <div className="local-indicator">
-              <span />
-              Local preview <span className="local-tag">DEMO</span>
-            </div>
             <button
               className="logout"
               onClick={async () => {
@@ -180,10 +176,6 @@ export function WorkspaceShell({
             </div>
           </header>
           <main id="main-content">{children}</main>
-          <footer className="page-footer">
-            <span>Less searching. More doing.</span>
-            <span>Docket · Your documents, together.</span>
-          </footer>
         </div>
       </div>
     </UserContext>
