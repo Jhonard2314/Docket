@@ -203,25 +203,44 @@ export default function UploadForm() {
                   ))}
                 </select>
               </label>
-              <label>
-                Department <span>*</span>
-                <select
-                  name="departmentId"
-                  required
-                  value={departmentId}
-                  onChange={(e) => setDepartmentId(e.target.value)}
-                  disabled={user.role !== "ADMIN"}
-                >
-                  <option value="" disabled>
-                    Select a department
-                  </option>
-                  {deps.data?.data.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
+              {user.role === "ADMIN" ? (
+                <label>
+                  Department <span>*</span>
+                  <select
+                    name="departmentId"
+                    required
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      Select a department
                     </option>
-                  ))}
-                </select>
-              </label>
+                    {deps.data?.data.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <label>
+                  Department
+                  <input
+                    type="text"
+                    value={user.department?.name || "No department"}
+                    disabled
+                    style={{ background: '#f7f8f4', cursor: 'not-allowed' }}
+                  />
+                  <input
+                    type="hidden"
+                    name="departmentId"
+                    value={user.department?.id || ""}
+                  />
+                  <small className="muted">
+                    Your assigned department
+                  </small>
+                </label>
+              )}
             </div>
             <label>
               Description <span className="optional">optional</span>
