@@ -459,13 +459,13 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 
 ---
 
-## 🔑 Default Accounts
+## 🔑 Default Account
 
-| Role | Email | Password | Department |
-|---|---|---|---|
-| **Administrator** | admin@docket.local | Docket123 | - |
-| **Department Head** | head@docket.local | Docket123 | HR |
-| **Employee** | employee@docket.local | Docket123 | Finance |
+| Role | Email | Password |
+|---|---|---|
+| **Administrator** | admin@docket.local | Docket123 |
+
+**Note:** The administrator creates all user accounts. Use the admin account to access the system and create additional users with appropriate roles and departments.
 
 ---
 
