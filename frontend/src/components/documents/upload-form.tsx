@@ -26,6 +26,7 @@ export default function UploadForm() {
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
+  const [departmentId, setDepartmentId] = useState(user.department?.id || "");
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
@@ -207,7 +208,8 @@ export default function UploadForm() {
                 <select
                   name="departmentId"
                   required
-                  defaultValue={user.department?.id || ""}
+                  value={departmentId}
+                  onChange={(e) => setDepartmentId(e.target.value)}
                   disabled={user.role !== "ADMIN"}
                 >
                   <option value="" disabled>
