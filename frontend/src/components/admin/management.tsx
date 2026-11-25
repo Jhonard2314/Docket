@@ -36,6 +36,7 @@ export default function Management({ kind }: { kind: Kind }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [role, setRole] = useState("EMPLOYEE");
+  const [deptId, setDeptId] = useState("");
   const label =
     kind === "users"
       ? "team member"
@@ -53,6 +54,7 @@ export default function Management({ kind }: { kind: Kind }) {
   function open(action: typeof modal, item: typeof selected = null) {
     setSelected(item);
     setRole(item?.role || "EMPLOYEE");
+    setDeptId(item?.department?.id || "");
     setError("");
     setModal(action);
   }
@@ -67,7 +69,12 @@ export default function Management({ kind }: { kind: Kind }) {
         const values = Object.fromEntries(new FormData(e!.currentTarget));
         const body =
           kind === "users"
-            ? { ...values, isActive: values.isActive !== "false" }
+            ? { 
+                ...values, 
+                isActive: values.isActive !== "false",
+                // If role is ADMIN, set departmentId to null
+                departmentId: role === "ADMIN" ? null : values.departmentId
+              }
             : values;
         await api(modal === "edit" ? `${endpoint}/${selected!.id}` : endpoint, {
           method: modal === "edit" ? "PATCH" : "POST",
@@ -340,7 +347,8 @@ export default function Management({ kind }: { kind: Kind }) {
                         <select
                           name="departmentId"
                           required
-                          defaultValue={selected?.department?.id || ""}
+                          value={deptId}
+                          onChange={(e) => setDeptId(e.target.value)}
                         >
                           <option value="" disabled>
                             Select department
