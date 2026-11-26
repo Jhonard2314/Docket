@@ -1,7 +1,4 @@
--- ============================================================
--- Docket — Script 01: Full schema (PostgreSQL / Amazon RDS)
--- Matches prisma/schema.prisma exactly.
--- ============================================================
+
 
 \c docket_db;
 

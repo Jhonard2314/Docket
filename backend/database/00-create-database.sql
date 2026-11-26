@@ -1,7 +1,4 @@
--- ============================================================
--- Docket — Script 00: Create database
--- Run as a PostgreSQL superuser (e.g. postgres).
--- ============================================================
+
 
 CREATE DATABASE docket_db
   ENCODING    'UTF8'

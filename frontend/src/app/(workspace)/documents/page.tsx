@@ -10,11 +10,13 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
+import { useUser } from "@/components/layout/workspace-shell";
 import { useResource } from "@/hooks/use-resource";
 import type { DocumentDto, ListResponse, NamedRef } from "@/lib/contracts";
 import { DocumentTable } from "@/components/documents/document-table";
 import { ErrorMessage, Loading } from "@/components/ui/shared";
 function Documents() {
+  const user = useUser();
   const params = useSearchParams();
   const router = useRouter();
   const [search, setSearch] = useState(params.get("q") || "");
@@ -82,18 +84,20 @@ function Documents() {
           </label>
           <div className="filter-selects">
             <SlidersHorizontal size={16} />
-            <select
-              aria-label="Filter by department"
-              value={params.get("departmentId") || ""}
-              onChange={(e) => update("departmentId", e.target.value)}
-            >
-              <option value="">All departments</option>
-              {deps.data?.data.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
+            {user.role === "ADMIN" && (
+              <select
+                aria-label="Filter by department"
+                value={params.get("departmentId") || ""}
+                onChange={(e) => update("departmentId", e.target.value)}
+              >
+                <option value="">All departments</option>
+                {deps.data?.data.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <select
               aria-label="Filter by category"
               value={params.get("categoryId") || ""}

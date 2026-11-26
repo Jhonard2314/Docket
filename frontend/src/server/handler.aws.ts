@@ -284,11 +284,32 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
           }
         }
         
+        // Department filter logic:
+        // - If user selects a department in dropdown (deptId exists), use that
+        // - Otherwise, for non-Admins, default to their own department
+        // - For Admins with no selection, show all departments
+        let departmentFilter: any = {};
+        if (deptId) {
+          // User explicitly selected a department filter
+          if (cu.role === "ADMIN") {
+            departmentFilter = { departmentId: deptId };
+          } else {
+            // Non-admin can only filter within their own department
+            departmentFilter = { departmentId: cu.department?.id ?? "__none__" };
+          }
+        } else {
+          // No department filter selected
+          if (cu.role !== "ADMIN") {
+            // Non-admin: default to their own department
+            departmentFilter = { departmentId: cu.department?.id ?? "__none__" };
+          }
+          // Admin with no filter: show all departments (empty filter)
+        }
+        
         const where: any = {
           ...statusFilter, 
-          ...deptFilter,
-          ...(catId  && { categoryId: catId }),
-          ...(deptId && cu.role === "ADMIN" && { departmentId: deptId }),
+          ...departmentFilter,
+          ...(catId && { categoryId: catId }),
           ...(q && { OR: [{ title: { contains: q, mode: "insensitive" } }, { filename: { contains: q, mode: "insensitive" } }] }),
         };
         const [docs, total] = await prisma.$transaction([
