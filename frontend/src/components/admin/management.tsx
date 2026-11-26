@@ -238,7 +238,7 @@ export default function Management({ kind }: { kind: Kind }) {
                     )}
                     <td>
                       <div className="row-actions">
-                        {kind === "users" && (
+                        {kind === "users" && item.email !== "admin@docket.local" && (
                           <button
                             className="icon-button"
                             onClick={() => open("password", item)}

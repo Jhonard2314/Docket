@@ -470,6 +470,11 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
       
       // Change password endpoint
       if (parts[3] === "password" && method === "PATCH") {
+        // Prevent changing the system administrator's password
+        if (existing.email === "admin@docket.local") {
+          fail(403, "The system administrator password cannot be changed through this interface.");
+        }
+        
         const newPassword = required(body.password, "Password", 256);
         if (newPassword.length < 8) fail(400, "Password must be at least 8 characters.");
         
