@@ -239,25 +239,22 @@ export default function Management({ kind }: { kind: Kind }) {
                     <td>
                       <div className="row-actions">
                         {kind === "users" && item.email !== "admin@docket.local" && (
-                          <button
-                            className="icon-button"
-                            onClick={() => open("password", item)}
-                            aria-label={`Change password for ${item.name}`}
-                            title="Change password"
-                          >
-                            <LockKeyhole size={16} />
-                          </button>
-                        )}
-                        <button
-                          className="icon-button"
-                          onClick={() => open("edit", item)}
-                          aria-label={`Edit ${item.name}`}
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        {kind === "users" ? (
-                          // Only show delete for users who aren't the system administrator
-                          item.email !== "admin@docket.local" && (
+                          <>
+                            <button
+                              className="icon-button"
+                              onClick={() => open("password", item)}
+                              aria-label={`Change password for ${item.name}`}
+                              title="Change password"
+                            >
+                              <LockKeyhole size={16} />
+                            </button>
+                            <button
+                              className="icon-button"
+                              onClick={() => open("edit", item)}
+                              aria-label={`Edit ${item.name}`}
+                            >
+                              <Pencil size={16} />
+                            </button>
                             <button
                               className="icon-button"
                               onClick={() => open("delete", item)}
@@ -265,15 +262,25 @@ export default function Management({ kind }: { kind: Kind }) {
                             >
                               <Trash2 size={16} />
                             </button>
-                          )
-                        ) : (
-                          <button
-                            className="icon-button"
-                            onClick={() => open("delete", item)}
-                            aria-label={`Delete ${item.name}`}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          </>
+                        )}
+                        {kind !== "users" && (
+                          <>
+                            <button
+                              className="icon-button"
+                              onClick={() => open("edit", item)}
+                              aria-label={`Edit ${item.name}`}
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button
+                              className="icon-button"
+                              onClick={() => open("delete", item)}
+                              aria-label={`Delete ${item.name}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
