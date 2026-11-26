@@ -598,7 +598,7 @@ server {
 - Joshua Castillejos
 - Justin Cedric Espe
 - Shamier Repalda
-- Cj Rigor
+- Cristhoper John Rigor
 - Jhonard Rollo
 
 **Course:** CCS4301 – Cloud Computing  
