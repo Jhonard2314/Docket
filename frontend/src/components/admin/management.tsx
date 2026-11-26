@@ -8,6 +8,9 @@ import {
   Building2,
   Tags,
   Search,
+  LockKeyhole,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useUser } from "@/components/layout/workspace-shell";
 import { useResource } from "@/hooks/use-resource";
@@ -31,12 +34,14 @@ export default function Management({ kind }: { kind: Kind }) {
     "/admin/departments?pageSize=100",
   );
   const [search, setSearch] = useState("");
-  const [modal, setModal] = useState<"create" | "edit" | "delete" | null>(null);
+  const [modal, setModal] = useState<"create" | "edit" | "delete" | "password" | null>(null);
   const [selected, setSelected] = useState<(AdminUser & NamedRef) | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [role, setRole] = useState("EMPLOYEE");
   const [deptId, setDeptId] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const label =
     kind === "users"
       ? "team member"
@@ -55,9 +60,30 @@ export default function Management({ kind }: { kind: Kind }) {
     setSelected(item);
     setRole(item?.role || "EMPLOYEE");
     setDeptId(item?.department?.id || "");
+    setNewPassword("");
+    setShowPassword(false);
     setError("");
     setModal(action);
   }
+  async function changePassword() {
+    if (!selected) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api(`/admin/users/${selected.id}/password`, {
+        method: "PATCH",
+        body: JSON.stringify({ password: newPassword }),
+      });
+      setModal(null);
+      setNewPassword("");
+      alert("Password changed successfully!");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submit(e?: React.FormEvent<HTMLFormElement>) {
     e?.preventDefault();
     setBusy(true);
@@ -212,6 +238,16 @@ export default function Management({ kind }: { kind: Kind }) {
                     )}
                     <td>
                       <div className="row-actions">
+                        {kind === "users" && (
+                          <button
+                            className="icon-button"
+                            onClick={() => open("password", item)}
+                            aria-label={`Change password for ${item.name}`}
+                            title="Change password"
+                          >
+                            <LockKeyhole size={16} />
+                          </button>
+                        )}
                         <button
                           className="icon-button"
                           onClick={() => open("edit", item)}
@@ -250,13 +286,63 @@ export default function Management({ kind }: { kind: Kind }) {
       </div>
       {modal && (
         <Modal
-          title={`${modal === "create" ? "Add" : modal === "edit" ? "Edit" : "Delete"} ${label}`}
+          title={`${modal === "create" ? "Add" : modal === "edit" ? "Edit" : modal === "password" ? "Change password" : "Delete"} ${label}`}
           onClose={() => {
             if (!busy) setModal(null);
           }}
         >
           <ErrorMessage message={error} />
-          {modal === "delete" ? (
+          {modal === "password" ? (
+            <>
+              <p className="dialog-description">
+                Change password for <strong>{selected?.name}</strong> ({selected?.email})
+              </p>
+              <fieldset disabled={busy}>
+                <label>
+                  New password
+                  <div className="password-field">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      minLength={8}
+                      maxLength={256}
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="icon-button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  <small className="muted">
+                    At least 8 characters. User will need to use this new password to login.
+                  </small>
+                </label>
+              </fieldset>
+              <div className="form-actions">
+                <button
+                  disabled={busy}
+                  className="button secondary"
+                  onClick={() => setModal(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="button primary"
+                  disabled={busy || newPassword.length < 8}
+                  onClick={changePassword}
+                >
+                  {busy ? "Changing…" : "Change password"}
+                </button>
+              </div>
+            </>
+          ) : modal === "delete" ? (
             <>
               <p className="dialog-description">
                 Delete “{selected?.name}”? Records that are still in use cannot

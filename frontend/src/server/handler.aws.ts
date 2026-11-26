@@ -467,6 +467,20 @@ export async function handle(req: NextRequest): Promise<NextResponse> {
       }
       const existing = await prisma.user.findUnique({ where: { id: parts[2] }, include: { department: { select: { id: true, name: true } } } });
       if (!existing) fail(404, "User not found.");
+      
+      // Change password endpoint
+      if (parts[3] === "password" && method === "PATCH") {
+        const newPassword = required(body.password, "Password", 256);
+        if (newPassword.length < 8) fail(400, "Password must be at least 8 characters.");
+        
+        await prisma.user.update({
+          where: { id: parts[2] },
+          data: { passwordHash: hashPassword(newPassword) },
+        });
+        
+        return ok({ message: "Password updated successfully" });
+      }
+      
       if (method === "PATCH") {
         const updated = await prisma.user.update({
           where: { id: parts[2] },
